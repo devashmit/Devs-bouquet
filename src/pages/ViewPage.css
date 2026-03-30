@@ -1,0 +1,110 @@
+.view-page {
+  min-height: calc(100vh - var(--navbar-height));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.view-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
+  padding: var(--space-2xl) var(--space-lg);
+  max-width: 600px;
+}
+
+.view-eyebrow {
+  font-family: var(--font-heading);
+  font-style: italic;
+  font-size: 0.9rem;
+  color: var(--charcoal-faint);
+  text-align: center;
+}
+
+.view-recipient {
+  font-size: clamp(1.4rem, 3.5vw, 2rem);
+  text-align: center;
+}
+
+.view-bouquet {
+  width: 100%;
+  max-width: 420px;
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lifted);
+  overflow: hidden;
+}
+
+.view-message {
+  text-align: center;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-lg);
+  background: rgba(255,255,255,0.6);
+  backdrop-filter: blur(8px);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255,255,255,0.5);
+}
+
+.message-text {
+  font-family: var(--font-heading);
+  font-style: italic;
+  font-size: clamp(1.05rem, 2.5vw, 1.3rem);
+  color: var(--warm-charcoal);
+  line-height: 1.6;
+  max-width: none;
+}
+
+.message-from {
+  font-size: 0.9rem;
+  color: var(--charcoal-faint);
+}
+
+.view-reactions {
+  margin-top: var(--space-sm);
+}
+
+.view-actions {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: var(--space-md);
+}
+
+.view-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: var(--space-lg);
+  text-align: center;
+  padding: var(--space-xl);
+}
+
+.view-error h2 {
+  font-size: 1.5rem;
+}
+
+@media (max-width: 480px) {
+  .view-content {
+    padding: var(--space-lg) var(--space-md);
+  }
+
+  .view-bouquet {
+    border-radius: var(--radius-md);
+  }
+
+  .view-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .view-actions .btn {
+    width: 100%;
+  }
+}

@@ -1,0 +1,122 @@
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  height: var(--navbar-height);
+  background: rgba(253, 246, 240, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(58, 58, 58, 0.06);
+}
+
+.navbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: var(--warm-charcoal);
+}
+
+.brand-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+  animation: float 6s ease-in-out infinite;
+}
+
+.brand-text {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.nav-link {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--charcoal-light);
+  text-decoration: none;
+  padding: 0.35rem 0.6rem;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 1.5px;
+  background: var(--blush);
+  transition: all var(--transition-normal);
+  transform: translateX(-50%);
+}
+
+.nav-link:hover {
+  color: var(--warm-charcoal);
+}
+
+.nav-link:hover::after {
+  width: 60%;
+}
+
+.nav-user-menu {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.nav-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--blush-light), var(--lavender-light));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--warm-charcoal);
+  cursor: pointer;
+  border: 1.5px solid var(--blush);
+  transition: all var(--transition-fast);
+}
+
+.nav-avatar:hover {
+  transform: scale(1.08);
+  box-shadow: var(--shadow-glow-blush);
+}
+
+@media (max-width: 640px) {
+  .navbar-links {
+    gap: 0.6rem;
+  }
+
+  .nav-link {
+    font-size: 0.82rem;
+    padding: 0.25rem 0.4rem;
+  }
+
+  .brand-text {
+    font-size: 1.05rem;
+  }
+
+  #nav-logout {
+    display: none;
+  }
+}

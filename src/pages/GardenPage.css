@@ -1,0 +1,115 @@
+.garden-page {
+  padding-bottom: var(--space-4xl);
+}
+
+.garden-header {
+  padding: var(--space-2xl) 0 var(--space-lg);
+}
+
+.garden-header h1 {
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  margin-bottom: var(--space-xs);
+}
+
+/* Filters */
+.garden-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: center;
+  margin-bottom: var(--space-2xl);
+}
+
+.filter-chip {
+  padding: 0.35rem 0.8rem;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: var(--radius-xl);
+  font-size: 0.8rem;
+  background: white;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: var(--charcoal-light);
+}
+
+.filter-chip:hover {
+  border-color: var(--blush);
+}
+
+.filter-chip.active {
+  border-color: var(--blush);
+  background: var(--blush-light);
+  color: var(--rose-deep);
+  font-weight: 500;
+}
+
+/* Grid */
+.garden-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-lg);
+}
+
+.garden-card {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  overflow: hidden;
+  padding: 0;
+  transition: all var(--transition-normal);
+}
+
+.garden-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lifted);
+}
+
+.garden-card-preview {
+  width: 100%;
+  aspect-ratio: 4/5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cream);
+  overflow: hidden;
+}
+
+.garden-card-preview svg {
+  width: 100%;
+  height: 100%;
+}
+
+.garden-card-info {
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.garden-card-to {
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  color: var(--warm-charcoal);
+}
+
+.garden-card-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.garden-reaction {
+  font-size: 1.1rem;
+}
+
+@media (max-width: 640px) {
+  .garden-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md);
+  }
+}
+
+@media (max-width: 380px) {
+  .garden-grid {
+    grid-template-columns: 1fr;
+  }
+}

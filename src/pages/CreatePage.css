@@ -1,0 +1,233 @@
+.create-page {
+  min-height: calc(100vh - var(--navbar-height));
+  padding: var(--space-xl) 0;
+}
+
+.create-layout {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: var(--space-2xl);
+  align-items: start;
+}
+
+.create-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.panel-header h2 {
+  font-size: 1.5rem;
+  margin-bottom: var(--space-xs);
+}
+
+/* Controls Panel */
+.create-controls {
+  position: sticky;
+  top: calc(var(--navbar-height) + var(--space-lg));
+  max-height: calc(100vh - var(--navbar-height) - var(--space-2xl));
+  overflow-y: auto;
+  padding-right: var(--space-sm);
+}
+
+.create-controls::-webkit-scrollbar {
+  width: 3px;
+}
+
+.create-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+/* Selected Flowers */
+.selected-flowers {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.flower-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.flower-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.65rem;
+  background: var(--blush-light);
+  border-radius: var(--radius-xl);
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--rose-deep);
+  text-transform: capitalize;
+}
+
+.chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: none;
+  background: rgba(196, 96, 112, 0.15);
+  border-radius: 50%;
+  font-size: 0.7rem;
+  cursor: pointer;
+  color: var(--rose-deep);
+  line-height: 1;
+  transition: all var(--transition-fast);
+}
+
+.chip-remove:hover {
+  background: rgba(196, 96, 112, 0.3);
+}
+
+/* Occasions */
+.occasion-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.occasion-chip {
+  padding: 0.35rem 0.75rem;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: var(--radius-xl);
+  font-size: 0.8rem;
+  background: white;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: var(--charcoal-light);
+}
+
+.occasion-chip:hover {
+  border-color: var(--blush);
+  background: var(--blush-light);
+}
+
+.occasion-chip.active {
+  border-color: var(--blush);
+  background: var(--blush-light);
+  color: var(--rose-deep);
+  font-weight: 500;
+}
+
+/* Checkbox */
+.checkbox-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 0.85rem;
+  color: var(--charcoal-light);
+  cursor: pointer;
+}
+
+.checkbox-wrap input[type="checkbox"] {
+  accent-color: var(--blush);
+  width: 16px;
+  height: 16px;
+}
+
+/* Actions */
+.create-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+/* Preview Panel */
+.create-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.preview-label {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--charcoal-light);
+  align-self: flex-start;
+}
+
+.preview-canvas {
+  width: 100%;
+  max-width: 420px;
+  aspect-ratio: 4/5;
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.preview-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+  padding: var(--space-xl);
+}
+
+.preview-message {
+  text-align: center;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.preview-to {
+  font-size: 0.9rem;
+  color: var(--charcoal-light);
+}
+
+.preview-msg {
+  font-family: var(--font-heading);
+  font-style: italic;
+  font-size: 1.05rem;
+  color: var(--warm-charcoal);
+}
+
+.preview-from {
+  font-size: 0.85rem;
+  color: var(--charcoal-faint);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .create-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .create-controls {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .create-preview {
+    order: -1;
+  }
+
+  .preview-canvas {
+    max-width: 340px;
+  }
+}
+
+@media (max-width: 480px) {
+  .preview-canvas {
+    max-width: 100%;
+    border-radius: var(--radius-md);
+  }
+}

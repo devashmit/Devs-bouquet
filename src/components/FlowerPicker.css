@@ -1,0 +1,87 @@
+.flower-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.picker-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--charcoal-light);
+  letter-spacing: 0.03em;
+}
+
+.picker-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-sm);
+}
+
+.picker-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: var(--space-sm) var(--space-xs);
+  border: 1.5px dashed var(--cream-dark);
+  border-radius: var(--radius-md);
+  background: white;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  text-align: center;
+}
+
+.picker-card:hover,
+.picker-card.hovered {
+  border-color: var(--blush);
+  background: var(--blush-light);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-soft);
+}
+
+.picker-card:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.picker-preview {
+  width: 70px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.picker-preview svg {
+  width: 100%;
+  height: 100%;
+}
+
+.picker-name {
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--warm-charcoal);
+}
+
+.picker-desc {
+  font-size: 0.7rem;
+  color: var(--charcoal-faint);
+  line-height: 1.3;
+}
+
+@media (max-width: 480px) {
+  .picker-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-xs);
+  }
+
+  .picker-desc {
+    display: none;
+  }
+
+  .picker-preview {
+    width: 50px;
+    height: 60px;
+  }
+}

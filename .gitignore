@@ -1,0 +1,97 @@
+# ============================
+# DevsBouquet — .gitignore
+# ============================
+
+# ---------- Dependencies ----------
+node_modules/
+.pnp
+.pnp.js
+package-lock.json
+
+# ---------- Build Output ----------
+dist/
+build/
+*.tsbuildinfo
+
+# ---------- Environment & Secrets ----------
+# CRITICAL: Never commit these — contain Firebase API keys, credentials
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+.env.staging
+.env.*.local
+
+# ---------- Firebase ----------
+.firebase/
+.firebaserc
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+database-debug.log
+storage-debug.log
+firebase-export-*
+emulator-*
+
+# ---------- Source Maps ----------
+# Prevent exposing original source code in production
+*.map
+*.js.map
+*.css.map
+
+# ---------- Logs ----------
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.log
+
+# ---------- Editor & IDE ----------
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+.project
+.classpath
+.settings/
+
+# ---------- OS Files ----------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ---------- Testing ----------
+coverage/
+*.lcov
+.nyc_output
+
+# ---------- Misc ----------
+*.pem
+*.key
+*.cert
+*.p12
+*.jks
+serviceAccountKey.json
+google-services.json
+GoogleService-Info.plist
+*.bak
+*.tmp
+*.temp
+.cache/
+.parcel-cache/
+.vercel
+.netlify
