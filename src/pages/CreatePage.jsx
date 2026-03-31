@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import BouquetComposer from '../engine/BouquetComposer';
 import FlowerPicker from '../components/FlowerPicker';
 import StyleToggle from '../components/StyleToggle';
+import PremadeGallery from '../components/PremadeGallery';
 import { createBouquet } from '../firebase/bouquets';
 import { exportBouquetAsPNG } from '../utils/export';
 import { pageVariants } from '../engine/animations';
@@ -24,6 +25,9 @@ export default function CreatePage() {
   const navigate = useNavigate();
   const bouquetRef = useRef(null);
 
+  const [creationMode, setCreationMode] = useState('custom'); // 'custom' | 'premade'
+  const [selectedPremadeId, setSelectedPremadeId] = useState('');
+  
   const [flowers, setFlowers] = useState([]);
   const [styleMode, setStyleMode] = useState('sketch');
   const [to, setTo] = useState('');
@@ -34,13 +38,38 @@ export default function CreatePage() {
   const [saving, setSaving] = useState(false);
   const [bouquetSeed] = useState(() => Math.floor(Math.random() * 100000));
 
+  const handleModeSwitch = (mode) => {
+    setCreationMode(mode);
+  };
+
+  const handleSelectPremade = (id, premadeFlowers, premadeStyle) => {
+    setSelectedPremadeId(id);
+    setFlowers(premadeFlowers);
+    setStyleMode(premadeStyle);
+  };
+
   const handleAddFlower = (flower) => {
-    if (flowers.length >= 8) return;
-    setFlowers((prev) => [...prev, flower]);
+    if (flowers.length >= 15) return;
+    setFlowers((prev) => {
+      const next = [...prev, flower];
+      // Automatically add vines/leaves to make the bouquet lush
+      if (Math.random() > 0.6 && next.length < 15) {
+        next.push({ type: 'filler', seed: Math.floor(Math.random() * 10000) });
+      }
+      return next;
+    });
   };
 
   const handleRemoveFlower = (index) => {
     setFlowers((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleFlowerChange = (index, updates) => {
+    setFlowers((prev) => {
+      const newFlowers = [...prev];
+      newFlowers[index] = { ...newFlowers[index], ...updates };
+      return newFlowers;
+    });
   };
 
   const handleSend = async () => {
@@ -88,28 +117,57 @@ export default function CreatePage() {
             <p className="tagline">Every petal drawn with a reason.</p>
           </div>
 
-          <FlowerPicker onAddFlower={handleAddFlower} styleMode={styleMode} />
+          <div className="mode-selector">
+            <button 
+               className={`mode-btn ${creationMode === 'custom' ? 'active' : ''}`}
+               onClick={() => handleModeSwitch('custom')}
+            >
+               <span>Create My Own</span>
+               <small>Arrange every petal with intention.</small>
+            </button>
+            <button 
+               className={`mode-btn ${creationMode === 'premade' ? 'active' : ''}`}
+               onClick={() => handleModeSwitch('premade')}
+            >
+               <span>Choose a Ready Bouquet</span>
+               <small>Beautiful compositions, ready to carry your words.</small>
+            </button>
+          </div>
 
-          {flowers.length > 0 && (
-            <div className="selected-flowers">
-              <label className="picker-label">
-                Your flowers ({flowers.length}/8)
-              </label>
-              <div className="flower-chips">
-                {flowers.map((f, i) => (
-                  <span key={i} className="flower-chip">
-                    {f.type}
-                    <button
-                      className="chip-remove"
-                      onClick={() => handleRemoveFlower(i)}
-                      title="Remove"
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
-            </div>
+          {creationMode === 'custom' ? (
+            <>
+              <FlowerPicker onAddFlower={handleAddFlower} styleMode={styleMode} />
+
+              {flowers.length > 0 && (
+                <div className="selected-flowers">
+                  <label className="picker-label">
+                    Your flowers ({flowers.length}/15)
+                  </label>
+                  <p className="helper-text" style={{ fontSize: '0.8rem', color: 'var(--charcoal-faint)', marginBottom: '0.5rem' }}>
+                    Tip: Drag flowers in the preview to position them!
+                  </p>
+                  <div className="flower-chips">
+                    {flowers.map((f, i) => (
+                      <span key={i} className="flower-chip">
+                        {f.type.replace('_', ' ')}
+                        <button
+                          className="chip-remove"
+                          onClick={() => handleRemoveFlower(i)}
+                          title="Remove"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+             <PremadeGallery 
+                selectedId={selectedPremadeId} 
+                onSelect={handleSelectPremade} 
+             />
           )}
 
           <StyleToggle value={styleMode} onChange={setStyleMode} />
@@ -182,7 +240,7 @@ export default function CreatePage() {
             <button
               className="btn btn-primary btn-lg"
               onClick={handleSend}
-              disabled={!flowers.length || saving}
+              disabled={flowers.length < 3 || saving}
               id="create-send"
               style={{ width: '100%' }}
             >
@@ -205,7 +263,7 @@ export default function CreatePage() {
         <div className="create-panel create-preview">
           <div className="preview-label">
             <span>Live Preview</span>
-            {!flowers.length && <span className="subtext">Add flowers to begin...</span>}
+            {flowers.length < 3 && <span className="subtext" style={{ color: 'var(--rose-deep)' }}>Add at least 3 flowers to begin...</span>}
           </div>
           <div className="preview-canvas" ref={bouquetRef}>
             {flowers.length > 0 ? (
@@ -216,6 +274,8 @@ export default function CreatePage() {
                 height={500}
                 seed={bouquetSeed}
                 showRibbon={flowers.length >= 2}
+                interactive={creationMode === 'custom'}
+                onFlowerChange={handleFlowerChange}
               />
             ) : (
               <div className="preview-empty">

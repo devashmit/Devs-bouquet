@@ -1,7 +1,8 @@
 import Rose from './Rose';
 import Tulip from './Tulip';
 import Daisy from './Daisy';
-import Lavender from './Lavender';
+import Lily from './Lily';
+import FillerLeaf from './FillerLeaf';
 import Stem from './Stem';
 
 /**
@@ -26,11 +27,17 @@ export const FLOWER_TYPES = {
     emoji: '🌼',
     description: 'Radial petals with center disc',
   },
-  lavender: {
-    component: Lavender,
-    name: 'Lavender',
-    emoji: '💜',
-    description: 'Vertical cluster of small buds',
+  lily: {
+    component: Lily,
+    name: 'Lily',
+    emoji: '⚜️',
+    description: 'Elegant wide blossoms',
+  },
+  filler: {
+    component: FillerLeaf,
+    name: 'Filler Leaf',
+    emoji: '🌿',
+    description: 'Delicate baby\'s breath and soft leaves',
   },
 };
 
@@ -50,5 +57,5 @@ export function renderFlower(type, props) {
   return <Component {...props} />;
 }
 
-export { Rose, Tulip, Daisy, Lavender, Stem };
+export { Rose, Tulip, Daisy, Lily as Lavender, Lily, FillerLeaf, Stem };
 export default FLOWER_TYPES;

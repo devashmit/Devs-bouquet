@@ -21,6 +21,53 @@
   margin-bottom: var(--space-xs);
 }
 
+/* Mode Selector */
+.mode-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.mode-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 1rem;
+  background: white;
+  border: 2px solid var(--cream-dark);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.mode-btn span {
+  font-weight: 600;
+  color: var(--charcoal);
+  font-size: 1.05rem;
+  margin-bottom: 0.2rem;
+}
+
+.mode-btn small {
+  color: var(--charcoal-faint);
+  font-size: 0.85rem;
+}
+
+.mode-btn:hover {
+  border-color: rgba(196, 96, 112, 0.4);
+  background: var(--rose-tint);
+}
+
+.mode-btn.active {
+  border-color: var(--rose-blush);
+  background: var(--blush-light);
+}
+
+.mode-btn.active span {
+  color: var(--rose-deep);
+}
+
 /* Controls Panel */
 .create-controls {
   position: sticky;
