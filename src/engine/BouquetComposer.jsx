@@ -1,73 +1,121 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { createRng } from './randomizer';
-import { getFlowerComponent, Stem } from './flowers';
-import { getRibbonColors, getStyleOptions } from './styles';
+import { getFlowerComponent } from './flowers';
+import { getRibbonColors } from './styles';
 import { motion } from 'framer-motion';
 
 /**
- * BouquetComposer — arranges flowers in a beautiful asymmetrical radial cluster.
- * Pure SVG engine with watercolor/ink filter.
+ * BouquetComposer — ink + watercolor sketch bouquet.
+ *
+ * Layout matches the reference:
+ * - Rose large in center-front
+ * - Tulips tall, flanking left and right
+ * - Daisies at sides
+ * - Lavender spikes
+ * - Large pointed leaves
+ * - Long stems tied with thin ribbon bow
  */
 export default function BouquetComposer({
   flowers = [],
   styleMode = 'sketch',
   showRibbon = true,
-  width = 500,
-  height = 650,
+  width = 420,
+  height = 580,
   seed = 1,
   className = '',
   id,
   interactive = false,
   onFlowerChange,
 }) {
-  const rng = useMemo(() => createRng(seed), [seed]);
   const ribbonColors = useMemo(() => getRibbonColors(styleMode), [styleMode]);
 
-  // Layout computation
   const layout = useMemo(() => {
-    if (!flowers.length) return { arranged: [], stems: [], splatters: [] };
+    if (!flowers.length) return { arranged: [] };
 
     const cx = width / 2;
-    // Tighter, slightly elevated dome
-    const bouquetCenterY = height * 0.35;
-    const stemBaseX = cx;
-    const stemBaseY = height * 0.75;
-    const ribbonY = height * 0.65;
-    
-    // Sort flowers so larger ones or filler tend to go to back
     const count = flowers.length;
 
-    const arranged = flowers.map((flower, i) => {
-      const flowerRng = createRng(flower.seed || seed + i * 13);
+    // Tie point — ribbon sits here
+    const tieX = cx;
+    const tieY = height * 0.72;
+
+    // Flower zone center
+    const fcy = height * 0.36;
+
+    // Sort: leaves/fillers back, lavender/wildflower mid, focal front
+    const zOrder = (t) => {
+      if (t === 'filler') return 0;
+      if (t === 'wildflower') return 1;
+      if (t === 'lavender') return 2;
+      if (t === 'tulip') return 3;
+      if (t === 'daisy') return 4;
+      if (t === 'lily') return 4;
+      if (t === 'rose') return 5;
+      return 3;
+    };
+
+    const sorted = [...flowers]
+      .map((f, i) => ({ ...f, _origIdx: i }))
+      .sort((a, b) => zOrder(a.type) - zOrder(b.type));
+
+    const arranged = sorted.map((flower, i) => {
+      const rng = createRng(flower.seed || seed + i * 17);
+
       let fx, fy, fscale, frotation;
 
       if (flower.x !== undefined && flower.y !== undefined) {
         fx = cx + flower.x;
-        fy = bouquetCenterY + flower.y;
+        fy = fcy + flower.y;
         fscale = flower.scale || 1;
         frotation = flower.rotation || 0;
       } else if (count === 1) {
         fx = cx;
-        fy = bouquetCenterY;
-        fscale = (flower.scale || 1) * 1.3;
-        frotation = flowerRng.rotation(10);
+        fy = fcy;
+        fscale = 1.4;
+        frotation = rng.range(-8, 8);
       } else {
-        // Asymmetrical radial cluster - Tight Fibonacci spiral distribution
-        const rRatio = i / (count - 1 || 1);
-        const radius = Math.min(width, height) * 0.18 * Math.sqrt(rRatio); // Tight dome
-        const angle = i * 137.5 + flowerRng.jitter(0, 5); 
+        // Natural spread — golden angle with type-based positioning
+        const angle = i * 137.5 + rng.range(-15, 15);
         const rad = (angle * Math.PI) / 180;
 
-        fx = cx + Math.cos(rad) * radius * 0.85;
-        fy = bouquetCenterY + Math.sin(rad) * radius * 0.65; 
+        // Spread radius based on type
+        const baseR = flower.type === 'rose' ? 0
+          : flower.type === 'filler' ? rng.range(55, 90)
+          : flower.type === 'lavender' ? rng.range(60, 95)
+          : flower.type === 'tulip' ? rng.range(40, 75)
+          : flower.type === 'daisy' ? rng.range(45, 80)
+          : rng.range(35, 70);
 
-        // Scale variation - ensure dense overlap
-        const depthScale = 1.15 - (rRatio * 0.3); 
-        fscale = (flower.scale || 1) * depthScale * flowerRng.range(1.0, 1.25);
-        
-        frotation = (angle % 360) + flowerRng.jitter(0, 10);
-        if (frotation > 90 && frotation < 270) frotation += 180; 
+        fx = cx + Math.cos(rad) * baseR + rng.range(-10, 10);
+        fy = fcy + Math.sin(rad) * baseR * 0.65 + rng.range(-12, 12);
+
+        // Tulips go higher
+        if (flower.type === 'tulip') fy -= rng.range(30, 55);
+        // Lavender goes higher too
+        if (flower.type === 'lavender') fy -= rng.range(20, 40);
+        // Leaves go lower/sides
+        if (flower.type === 'filler') fy += rng.range(10, 30);
+
+        const typeScale =
+          flower.type === 'rose'       ? 1.5  :
+          flower.type === 'daisy'      ? 1.3  :
+          flower.type === 'tulip'      ? 1.35 :
+          flower.type === 'lavender'   ? 1.3  :
+          flower.type === 'lily'       ? 1.1  :
+          flower.type === 'filler'     ? 1.2  :
+          flower.type === 'wildflower' ? 1.0  : 1.2;
+
+        fscale = typeScale * rng.range(0.88, 1.12);
+        frotation = rng.range(-20, 20);
       }
+
+      // Stem path
+      const rng2 = createRng((flower.seed || seed) + 600 + i);
+      const cp1x = fx + rng2.range(-12, 12);
+      const cp1y = fy + rng2.range(25, 55);
+      const cp2x = tieX + rng2.range(-18, 18);
+      const cp2y = tieY - rng2.range(25, 65);
+      const ex   = tieX + rng2.range(-7, 7);
 
       return {
         ...flower,
@@ -75,51 +123,18 @@ export default function BouquetComposer({
         layoutY: fy,
         layoutScale: fscale,
         layoutRotation: frotation,
-        zIndex: i,
+        stemPath: `M${fx},${fy + 10} C${cp1x},${cp1y} ${cp2x},${cp2y} ${ex},${tieY}`,
       };
     });
 
-    // Generate stems connecting flowers to base
-    const stems = arranged.map((flower, i) => {
-      const flowerRng = createRng((flower.seed || seed) + 500 + i);
-      const stemTopX = flower.layoutX;
-      // Precision alignment: Start exactly where the image fade mask ends
-      const stemTopY = flower.layoutY + (flower.type === 'filler' ? 10 : 0) * flower.layoutScale;
-      
-      const gatherX = stemBaseX + flowerRng.jitter(0, 4);
-      const gatherY = ribbonY + flowerRng.jitter(0, 6);
-      
-      return {
-        x1: stemTopX,
-        y1: stemTopY,
-        x2: gatherX,
-        y2: gatherY,
-        baseX2: gatherX + flowerRng.range(-20, 20),
-        baseY2: stemBaseY + flowerRng.range(0, 40),
-        curvature: flowerRng.range(0.12, 0.35) * (flower.layoutX < cx ? -1 : 1), 
-        seed: flower.seed || seed + 500 + i,
-        showLeaf: flowerRng.random() > 0.6,
-        leafSide: flowerRng.random() > 0.5 ? 'left' : 'right',
-        styleMode,
-        strokeWidth: flowerRng.range(2.0, 3.5)
-      };
-    });
-
-    // Splatters
-    const splatters = [];
-    for(let i=0; i<15; i++) {
-        splatters.push({
-            cx: cx + rng.jitter(0, width * 0.35),
-            cy: bouquetCenterY + rng.jitter(0, height * 0.3),
-            r: rng.range(0.5, 1.5),
-            opacity: rng.range(0.2, 0.6)
-        });
-    }
-
-    return { arranged, stems, splatters, ribbonY, stemBaseX };
-  }, [flowers, width, height, seed, rng, styleMode]);
+    return { arranged, tieX, tieY };
+  }, [flowers, width, height, seed]);
 
   if (!flowers.length) return null;
+
+  const { arranged, tieX, tieY } = layout;
+  const bundleBottom = tieY + height * 0.2;
+  const stemColor = styleMode === 'mono' ? '#4a4a4a' : '#5a7a4a';
 
   return (
     <svg
@@ -129,100 +144,110 @@ export default function BouquetComposer({
       preserveAspectRatio="xMidYMid meet"
       className={`bouquet-composer ${className}`}
       id={id}
-      style={{ maxWidth: '90vw', touchAction: 'none' }}
+      style={{ maxWidth: '90vw', touchAction: 'none', background: '#fefcf8' }}
     >
-      <defs>
-        {/* Soft drop shadow for subtle depth */}
-        <filter id="soft-shadow" x="-10%" y="-10%" width="120%" height="120%">
-          <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#000" floodOpacity="0.1"/>
-        </filter>
-      </defs>
+      {/* Warm off-white paper background */}
+      <rect width={width} height={height} fill="#fefcf8" />
 
-      {/* Background — soft cream watercolor paper texture color */}
-      <rect width={width} height={height} fill="#fffafa" rx="8" />
-      
-      {/* Light splatters for artistic sketch effect */}
-      <g fill="#8a6e70">
-         {layout.splatters.map((s, i) => (
-            <circle key={`splatter-${i}`} cx={s.cx} cy={s.cy} r={s.r} opacity={s.opacity} />
-         ))}
-      </g>
+      {/* Watercolor ink splatter dots */}
+      {Array.from({ length: 22 }).map((_, i) => {
+        const sr = createRng(seed + i * 13 + 5000);
+        const colors = styleMode === 'mono'
+          ? ['#ccc', '#bbb']
+          : ['#e8b0b8', '#c8b0d8', '#d8c8a0', '#f0c8c0'];
+        return (
+          <circle key={`sp-${i}`}
+            cx={sr.range(10, width - 10)} cy={sr.range(10, height * 0.88)}
+            r={sr.range(0.8, 3)}
+            fill={colors[Math.floor(sr.random() * colors.length)]}
+            opacity={sr.range(0.1, 0.38)}
+          />
+        );
+      })}
 
-      {/* Render internal filtered group */}
+      {/* Stems — behind flowers */}
       <g>
-        {/* Full Stems */}
-        {layout.stems.map((stem, i) => (
-          <Stem
-            key={`stem-${i}`}
-            x1={stem.x1} y1={stem.y1}
-            x2={stem.baseX2} y2={stem.baseY2} // Draw full length through knot
-            curvature={stem.curvature}
-            seed={stem.seed}
-            showLeaf={stem.showLeaf}
-            leafSide={stem.leafSide}
-            styleMode={styleMode}
-            strokeWidth={stem.strokeWidth}
+        {arranged.map((f, i) => (
+          <path key={`stem-${i}`}
+            d={f.stemPath}
+            fill="none"
+            stroke={stemColor}
+            strokeWidth={f.type === 'filler' ? '1.2' : '1.7'}
+            strokeLinecap="round"
+            opacity="0.75"
           />
         ))}
-
-        {/* Flowers */}
-        {layout.arranged.map((flower, i) => {
-          const FlowerComponent = getFlowerComponent(flower.type);
-          const node = (
-            <FlowerComponent
-              x={interactive ? 0 : flower.layoutX}
-              y={interactive ? 0 : flower.layoutY}
-              scale={flower.layoutScale}
-              rotation={flower.layoutRotation}
-              seed={flower.seed || seed + i * 17}
-              styleMode={styleMode}
-              className={interactive ? 'flower-interactive' : ''}
+        {/* Bundle below tie */}
+        {Array.from({ length: Math.min(flowers.length + 2, 9) }).map((_, i) => {
+          const sr = createRng(seed + i * 53 + 9000);
+          const bx = tieX + sr.range(-7, 7);
+          return (
+            <line key={`b-${i}`}
+              x1={bx} y1={tieY + 3}
+              x2={bx + sr.range(-4, 4)} y2={bundleBottom}
+              stroke={stemColor} strokeWidth="1.6" strokeLinecap="round" opacity="0.7"
             />
           );
-
-          if (interactive) {
-            return (
-              <motion.g
-                key={`flower-${i}-${flower.seed || i}`}
-                drag
-                dragMomentum={false}
-                style={{ x: flower.layoutX, y: flower.layoutY, cursor: 'grab', filter: 'url(#soft-shadow)' }}
-                whileDrag={{ cursor: 'grabbing', scale: 1.05 }}
-                onDragEnd={(e, info) => {
-                   const cx = width / 2;
-                   const bouquetCenterY = height * 0.35;
-                   const dx = info.offset.x;
-                   const dy = info.offset.y;
-                   
-                   const startX = flower.x !== undefined ? flower.x : (flower.layoutX - cx);
-                   const startY = flower.y !== undefined ? flower.y : (flower.layoutY - bouquetCenterY);
-                   
-                   onFlowerChange?.(i, { x: startX + dx, y: startY + dy });
-                }}
-              >
-                {node}
-              </motion.g>
-            );
-          }
-          return <React.Fragment key={`flower-${i}-${flower.seed || i}`}>{node}</React.Fragment>;
         })}
-
-        {/* Ribbon */}
-        {showRibbon && (
-          <g transform={`translate(${layout.stemBaseX}, ${layout.ribbonY})`}>
-            {/* Left loops */}
-            <path d="M0,0 C-25,-15 -45,10 -15,15 C-5,15 0,5 0,0 Z" fill={ribbonColors.fill} stroke={ribbonColors.stroke} strokeWidth="1.5" opacity="0.85" />
-            <path d="M-5,5 C-15,10 -30,20 -35,50 C-20,40 -10,30 -5,5 Z" fill="none" stroke={ribbonColors.stroke} strokeWidth="2" opacity="0.9" strokeLinecap="round" />
-            
-            {/* Right loops */}
-            <path d="M0,0 C25,-15 45,10 15,15 C5,15 0,5 0,0 Z" fill={ribbonColors.fill} stroke={ribbonColors.stroke} strokeWidth="1.5" opacity="0.85" />
-            <path d="M5,5 C15,10 30,20 35,50 C20,40 10,30 5,5 Z" fill="none" stroke={ribbonColors.stroke} strokeWidth="2" opacity="0.9" strokeLinecap="round" />
-            
-            {/* Knot */}
-            <ellipse cx="0" cy="2" rx="6" ry="4" fill={ribbonColors.fill} stroke={ribbonColors.stroke} strokeWidth="2" />
-          </g>
-        )}
       </g>
+
+      {/* Flowers */}
+      {arranged.map((flower, i) => {
+        const FlowerComponent = getFlowerComponent(flower.type);
+        const node = (
+          <FlowerComponent
+            x={interactive ? 0 : flower.layoutX}
+            y={interactive ? 0 : flower.layoutY}
+            scale={flower.layoutScale}
+            rotation={flower.layoutRotation}
+            seed={flower.seed || seed + i * 17}
+            styleMode={styleMode}
+          />
+        );
+
+        if (interactive) {
+          return (
+            <motion.g
+              key={`fl-${i}`}
+              drag dragMomentum={false}
+              style={{ x: flower.layoutX, y: flower.layoutY, cursor: 'grab' }}
+              whileDrag={{ cursor: 'grabbing', scale: 1.05 }}
+              onDragEnd={(_, info) => {
+                const startX = flower.x !== undefined ? flower.x : (flower.layoutX - width / 2);
+                const startY = flower.y !== undefined ? flower.y : (flower.layoutY - height * 0.36);
+                onFlowerChange?.(flower._origIdx ?? i, {
+                  x: startX + info.offset.x,
+                  y: startY + info.offset.y,
+                });
+              }}
+            >
+              {node}
+            </motion.g>
+          );
+        }
+        return <React.Fragment key={`fl-${i}`}>{node}</React.Fragment>;
+      })}
+
+      {/* Thin ribbon bow — like the reference (simple, elegant) */}
+      {showRibbon && flowers.length >= 2 && (
+        <g transform={`translate(${tieX}, ${tieY})`}>
+          {/* Left loop */}
+          <path d="M0,3 C-14,-16 -40,-2 -20,12 C-10,16 -1,8 0,3 Z"
+            fill={ribbonColors.fill} stroke={ribbonColors.stroke} strokeWidth="1.1" opacity="0.85" />
+          {/* Right loop */}
+          <path d="M0,3 C14,-16 40,-2 20,12 C10,16 1,8 0,3 Z"
+            fill={ribbonColors.fill} stroke={ribbonColors.stroke} strokeWidth="1.1" opacity="0.85" />
+          {/* Left tail — thin flowing */}
+          <path d="M-2,8 C-10,20 -26,40 -30,65 C-18,46 -8,26 -2,8 Z"
+            fill={ribbonColors.fill} stroke={ribbonColors.stroke} strokeWidth="1" opacity="0.78" />
+          {/* Right tail */}
+          <path d="M2,8 C10,20 26,40 30,65 C18,46 8,26 2,8 Z"
+            fill={ribbonColors.fill} stroke={ribbonColors.stroke} strokeWidth="1" opacity="0.78" />
+          {/* Knot */}
+          <ellipse cx="0" cy="5" rx="6" ry="4.5"
+            fill={ribbonColors.fill} stroke={ribbonColors.stroke} strokeWidth="1.3" />
+        </g>
+      )}
     </svg>
   );
 }

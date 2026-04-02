@@ -36,6 +36,15 @@ export default function ImageFlower({
         </mask>
       </defs>
 
+      {/* White fill behind image to eliminate transparent checkerboard */}
+      <rect
+        x={offsetX}
+        y={offsetY}
+        width={width}
+        height={height}
+        fill="#fffafa"
+        mask={`url(#${maskId})`}
+      />
       <image 
         href={`/flowers/${type}.png`} 
         x={offsetX} 
