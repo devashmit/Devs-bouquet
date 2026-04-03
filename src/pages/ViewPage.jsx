@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import BouquetComposer from '../engine/BouquetComposer';
+import AIBouquetViewer from '../components/AIBouquetViewer';
 import ReactionBar from '../components/ReactionBar';
 import { getBouquet, markBouquetViewed, updateBouquetReaction } from '../firebase/bouquets';
 import { exportBouquetAsPNG } from '../utils/export';
@@ -143,18 +143,7 @@ export default function ViewPage() {
           initial="hidden"
           animate="visible"
         >
-          <motion.div variants={flowerGroupVariants}>
-            <motion.div variants={flowerVariants}>
-              <BouquetComposer
-                flowers={bouquet.flowers || []}
-                styleMode={bouquet.styleMode || 'sketch'}
-                width={400}
-                height={500}
-                seed={bouquet.seed || 42}
-                showRibbon={(bouquet.flowers?.length || 0) >= 2}
-              />
-            </motion.div>
-          </motion.div>
+          <AIBouquetViewer flowers={bouquet.flowers || []} />
         </motion.div>
 
         {/* Message */}

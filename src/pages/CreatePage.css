@@ -5,7 +5,7 @@
 
 .create-layout {
   display: grid;
-  grid-template-columns: 380px 1fr;
+  grid-template-columns: 420px 1fr;
   gap: var(--space-2xl);
   align-items: start;
 }
@@ -206,15 +206,9 @@
 
 .preview-canvas {
   width: 100%;
-  max-width: 420px;
-  aspect-ratio: 4/5;
-  background: white;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-medium);
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
 }
 
 .preview-empty {

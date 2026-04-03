@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
-import BouquetComposer from '../engine/BouquetComposer';
+import AIBouquetViewer from '../components/AIBouquetViewer';
 import EmptyState from '../components/EmptyState';
 import { getUserBouquets } from '../firebase/bouquets';
 import { pageVariants, staggerContainer, fadeInUp } from '../engine/animations';
@@ -94,14 +94,7 @@ export default function DashboardPage() {
               <motion.div key={b.id} variants={fadeInUp}>
                 <Link to={`/view/${b.id}`} className="dashboard-item card" id={`dash-item-${b.id}`}>
                   <div className="dash-item-preview">
-                    <BouquetComposer
-                      flowers={b.flowers || []}
-                      styleMode={b.styleMode || 'sketch'}
-                      width={100}
-                      height={125}
-                      seed={b.seed || 1}
-                      showRibbon={false}
-                    />
+                    <AIBouquetViewer flowers={b.flowers || []} />
                   </div>
                   <div className="dash-item-info">
                     <p className="dash-item-to">

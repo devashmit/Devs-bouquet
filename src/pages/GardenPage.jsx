@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import BouquetComposer from '../engine/BouquetComposer';
+import AIBouquetViewer from '../components/AIBouquetViewer';
 import EmptyState from '../components/EmptyState';
 import { getPublicBouquets } from '../firebase/bouquets';
 import { pageVariants, staggerContainer, fadeInUp } from '../engine/animations';
@@ -84,14 +84,7 @@ export default function GardenPage() {
               <motion.div key={b.id} variants={fadeInUp}>
                 <Link to={`/view/${b.id}`} className="garden-card card" id={`garden-${b.id}`}>
                   <div className="garden-card-preview">
-                    <BouquetComposer
-                      flowers={b.flowers || []}
-                      styleMode={b.styleMode || 'sketch'}
-                      width={200}
-                      height={250}
-                      seed={b.seed || 1}
-                      showRibbon={false}
-                    />
+                    <AIBouquetViewer flowers={b.flowers || []} />
                   </div>
                   <div className="garden-card-info">
                     {b.to && <p className="garden-card-to">For {b.to}</p>}

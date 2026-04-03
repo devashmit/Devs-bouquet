@@ -1,58 +1,66 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import FLOWER_TYPES from '../engine/flowers';
-import BouquetComposer from '../engine/BouquetComposer';
 import './FlowerPicker.css';
 
-/**
- * FlowerPicker — visual grid of flower types.
- * Click to add a flower to the bouquet.
- */
-export default function FlowerPicker({ onAddFlower, styleMode = 'sketch' }) {
-  const [hoveredType, setHoveredType] = useState(null);
-  const types = Object.entries(FLOWER_TYPES);
+const CATALOG = Object.entries(FLOWER_TYPES).map(([key, val]) => ({
+  id: key,
+  ...val,
+}));
 
-  const handleAdd = (type) => {
-    const flower = {
-      type,
-      seed: Math.floor(Math.random() * 100000),
-      scale: 1,
-      rotation: Math.random() * 30 - 15,
-      petalVariance: 0.25 + Math.random() * 0.2,
-      roughness: 1.2 + Math.random() * 0.8,
-      strokeWidth: 1.2 + Math.random() * 0.6,
-      color: null, // use style defaults
-    };
-    onAddFlower(flower);
+export default function FlowerPicker({ onAddFlower, selectedFlowers = [] }) {
+  const selectedIds = selectedFlowers.map(f => f.type);
+
+  const handleSelect = (flower) => {
+    onAddFlower({ type: flower.id });
   };
 
   return (
-    <div className="flower-picker" id="flower-picker">
-      <label className="picker-label">Choose your flowers</label>
+    <div className="flower-picker">
+      <div className="picker-label">
+        Choose your flowers
+        <span className="picker-count">{selectedFlowers.length}/10</span>
+      </div>
       <div className="picker-grid">
-        {types.map(([key, info]) => (
-          <button
-            key={key}
-            className={`picker-card ${hoveredType === key ? 'hovered' : ''}`}
-            onClick={() => handleAdd(key)}
-            onMouseEnter={() => setHoveredType(key)}
-            onMouseLeave={() => setHoveredType(null)}
-            id={`pick-${key}`}
-            title={`Add ${info.name}`}
-          >
-            <div className="picker-preview">
-              <BouquetComposer
-                flowers={[{ type: key, seed: 777 + key.charCodeAt(0), scale: 1, petalVariance: 0.3 }]}
-                styleMode={styleMode}
-                width={80}
-                height={100}
-                showRibbon={false}
-                seed={key.charCodeAt(0) * 7}
-              />
-            </div>
-            <span className="picker-name">{info.name}</span>
-            <span className="picker-desc">{info.description}</span>
-          </button>
-        ))}
+        {CATALOG.map((flower) => {
+          const isSelected = selectedIds.includes(flower.id);
+          const count = selectedIds.filter(id => id === flower.id).length;
+
+          return (
+            <motion.button
+              key={flower.id}
+              className={`picker-card ${isSelected ? 'selected' : ''}`}
+              onClick={() => handleSelect(flower)}
+              whileHover={{ y: -4, scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+              title={flower.name}
+            >
+              <div className="picker-img-wrap">
+                <img
+                  src={flower.image}
+                  alt={flower.name}
+                  className="picker-img"
+                  style={{ mixBlendMode: 'multiply' }}
+                />
+                {isSelected && (
+                  <motion.div
+                    className="picker-badge"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+                  >
+                    {count}
+                  </motion.div>
+                )}
+              </div>
+              <div className="picker-info">
+                <span className="picker-name">{flower.name}</span>
+                <span className="picker-poetic">{flower.poetic}</span>
+              </div>
+            </motion.button>
+          );
+        })}
       </div>
     </div>
   );

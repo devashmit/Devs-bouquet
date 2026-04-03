@@ -2,12 +2,9 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
-import BouquetComposer from '../engine/BouquetComposer';
+import AIBouquetViewer from '../components/AIBouquetViewer';
 import FlowerPicker from '../components/FlowerPicker';
-import StyleToggle from '../components/StyleToggle';
-import PremadeGallery from '../components/PremadeGallery';
 import { createBouquet } from '../firebase/bouquets';
-import { exportBouquetAsPNG } from '../utils/export';
 import { pageVariants } from '../engine/animations';
 import './CreatePage.css';
 
@@ -25,11 +22,7 @@ export default function CreatePage() {
   const navigate = useNavigate();
   const bouquetRef = useRef(null);
 
-  const [creationMode, setCreationMode] = useState('custom'); // 'custom' | 'premade'
-  const [selectedPremadeId, setSelectedPremadeId] = useState('');
-  
   const [flowers, setFlowers] = useState([]);
-  const [styleMode, setStyleMode] = useState('sketch');
   const [to, setTo] = useState('');
   const [from, setFrom] = useState(user?.displayName || '');
   const [message, setMessage] = useState('');
@@ -38,38 +31,13 @@ export default function CreatePage() {
   const [saving, setSaving] = useState(false);
   const [bouquetSeed] = useState(() => Math.floor(Math.random() * 100000));
 
-  const handleModeSwitch = (mode) => {
-    setCreationMode(mode);
-  };
-
-  const handleSelectPremade = (id, premadeFlowers, premadeStyle) => {
-    setSelectedPremadeId(id);
-    setFlowers(premadeFlowers);
-    setStyleMode(premadeStyle);
-  };
-
   const handleAddFlower = (flower) => {
-    if (flowers.length >= 15) return;
-    setFlowers((prev) => {
-      const next = [...prev, flower];
-      // Automatically add vines/leaves to make the bouquet lush
-      if (Math.random() > 0.6 && next.length < 15) {
-        next.push({ type: 'filler', seed: Math.floor(Math.random() * 10000) });
-      }
-      return next;
-    });
+    if (flowers.length >= 10) return; // Limit to 10 for AI prompt quality
+    setFlowers((prev) => [...prev, flower]);
   };
 
   const handleRemoveFlower = (index) => {
     setFlowers((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const handleFlowerChange = (index, updates) => {
-    setFlowers((prev) => {
-      const newFlowers = [...prev];
-      newFlowers[index] = { ...newFlowers[index], ...updates };
-      return newFlowers;
-    });
   };
 
   const handleSend = async () => {
@@ -83,7 +51,6 @@ export default function CreatePage() {
         message,
         occasion,
         flowers,
-        styleMode,
         isPublic,
         seed: bouquetSeed,
       });
@@ -96,10 +63,6 @@ export default function CreatePage() {
     }
   };
 
-  const handleExport = () => {
-    const el = bouquetRef.current;
-    if (el) exportBouquetAsPNG(el, `bouquet-for-${to || 'someone'}`);
-  };
 
   return (
     <motion.div
@@ -117,60 +80,27 @@ export default function CreatePage() {
             <p className="tagline">Every petal drawn with a reason.</p>
           </div>
 
-          <div className="mode-selector">
-            <button 
-               className={`mode-btn ${creationMode === 'custom' ? 'active' : ''}`}
-               onClick={() => handleModeSwitch('custom')}
-            >
-               <span>Create My Own</span>
-               <small>Arrange every petal with intention.</small>
-            </button>
-            <button 
-               className={`mode-btn ${creationMode === 'premade' ? 'active' : ''}`}
-               onClick={() => handleModeSwitch('premade')}
-            >
-               <span>Choose a Ready Bouquet</span>
-               <small>Beautiful compositions, ready to carry your words.</small>
-            </button>
-          </div>
+          <FlowerPicker
+            onAddFlower={handleAddFlower}
+            selectedFlowers={flowers}
+          />
 
-          {creationMode === 'custom' ? (
-            <>
-              <FlowerPicker onAddFlower={handleAddFlower} styleMode={styleMode} />
-
-              {flowers.length > 0 && (
-                <div className="selected-flowers">
-                  <label className="picker-label">
-                    Your flowers ({flowers.length}/15)
-                  </label>
-                  <p className="helper-text" style={{ fontSize: '0.8rem', color: 'var(--charcoal-faint)', marginBottom: '0.5rem' }}>
-                    Tip: Drag flowers in the preview to position them!
-                  </p>
-                  <div className="flower-chips">
-                    {flowers.map((f, i) => (
-                      <span key={i} className="flower-chip">
-                        {f.type.replace('_', ' ')}
-                        <button
-                          className="chip-remove"
-                          onClick={() => handleRemoveFlower(i)}
-                          title="Remove"
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </>
-          ) : (
-             <PremadeGallery 
-                selectedId={selectedPremadeId} 
-                onSelect={handleSelectPremade} 
-             />
+          {flowers.length > 0 && (
+            <div className="selected-flowers">
+              <div className="flower-chips">
+                {flowers.map((f, i) => (
+                  <span key={i} className="flower-chip">
+                    {f.type.replace(/_/g, ' ')}
+                    <button
+                      className="chip-remove"
+                      onClick={() => handleRemoveFlower(i)}
+                      title="Remove"
+                    >×</button>
+                  </span>
+                ))}
+              </div>
+            </div>
           )}
-
-          <StyleToggle value={styleMode} onChange={setStyleMode} />
 
           <div className="create-form">
             <div className="input-group">
@@ -240,22 +170,12 @@ export default function CreatePage() {
             <button
               className="btn btn-primary btn-lg"
               onClick={handleSend}
-              disabled={flowers.length < 3 || saving}
+              disabled={flowers.length < 1 || saving}
               id="create-send"
               style={{ width: '100%' }}
             >
-              {saving ? 'Drawing...' : '✿ Send Bouquet'}
+              {saving ? 'Saving your bouquet…' : flowers.length < 1 ? 'Add a flower first' : '✿ Send Bouquet'}
             </button>
-            {flowers.length > 0 && (
-              <button
-                className="btn btn-secondary btn-sm"
-                onClick={handleExport}
-                id="create-export"
-                style={{ width: '100%' }}
-              >
-                Save as Image
-              </button>
-            )}
           </div>
         </div>
 
@@ -263,31 +183,10 @@ export default function CreatePage() {
         <div className="create-panel create-preview">
           <div className="preview-label">
             <span>Live Preview</span>
-            {flowers.length < 3 && <span className="subtext" style={{ color: 'var(--rose-deep)' }}>Add at least 3 flowers to begin...</span>}
+            {flowers.length < 1 && <span className="subtext" style={{ color: 'var(--rose-deep)' }}>Add your first flower to begin...</span>}
           </div>
           <div className="preview-canvas" ref={bouquetRef}>
-            {flowers.length > 0 ? (
-              <BouquetComposer
-                flowers={flowers}
-                styleMode={styleMode}
-                width={400}
-                height={500}
-                seed={bouquetSeed}
-                showRibbon={flowers.length >= 2}
-                interactive={creationMode === 'custom'}
-                onFlowerChange={handleFlowerChange}
-              />
-            ) : (
-              <div className="preview-empty">
-                <svg width="80" height="100" viewBox="0 0 80 100" style={{ opacity: 0.2 }}>
-                  <path d="M40 20 C25 10, 10 25, 25 40 C30 46, 37 50, 40 55 C43 50, 50 46, 55 40 C70 25, 55 10, 40 20Z" fill="none" stroke="var(--charcoal-faint)" strokeWidth="1" strokeDasharray="3 3"/>
-                  <line x1="40" y1="55" x2="40" y2="90" stroke="var(--charcoal-faint)" strokeWidth="1" strokeDasharray="3 3"/>
-                </svg>
-                <p className="tagline" style={{ fontSize: '0.9rem' }}>
-                  Your bouquet will bloom here
-                </p>
-              </div>
-            )}
+            <AIBouquetViewer flowers={flowers} />
           </div>
 
           {(to || message) && flowers.length > 0 && (

@@ -1,58 +1,43 @@
 /**
- * Curated Pre-made Bouquets
+ * Curated Pre-made AI Bouquets
  * 
- * These are structured arrays of flowers beautifully arranged by hand.
- * They act as the "Ready Bouquet" gallery.
+ * These compositions are used as starting points for users.
  */
 
 export const PREMADE_BOUQUETS = [
   {
     id: 'classic-romance',
     name: 'The Classic Romance',
-    description: 'A timeless expression of love with a dense center of roses.',
+    description: 'A timeless expression of love with red roses and peonies.',
     flowers: [
-      { type: 'filler', x: -60, y: -40, rotation: -20, scale: 0.9, seed: 101 },
-      { type: 'filler', x: 60, y: -50, rotation: 30, scale: 1.1, seed: 102 },
-      { type: 'lily', x: -40, y: -80, rotation: -15, scale: 1.2, seed: 103 },
-      { type: 'lily', x: 40, y: -90, rotation: 10, scale: 1.1, seed: 104 },
-      { type: 'daisy', x: -70, y: 0, rotation: -40, scale: 0.8, seed: 105 },
-      { type: 'tulip', x: 50, y: 10, rotation: 40, scale: 1.0, seed: 106 },
-      { type: 'tulip', x: -30, y: 30, rotation: -20, scale: 1.1, seed: 107 },
-      { type: 'rose', x: 0, y: -10, rotation: 0, scale: 1.5, petalVariance: 0.4, seed: 108 },
+      { type: 'classic_red_rose' },
+      { type: 'classic_red_rose' },
+      { type: 'romantic_pink_peony' },
+      { type: 'delicate_white_lily' },
+      { type: 'babys_breath' },
     ],
-    styleMode: 'sketch',
   },
   {
     id: 'spring-morning',
     name: 'Spring Morning',
-    description: 'Bright and airy, featuring daisies and tulips reaching for the sun.',
+    description: 'Bright and airy, featuring sunflowers and daisies.',
     flowers: [
-      { type: 'filler', x: 0, y: -100, rotation: 0, scale: 1.2, seed: 201 },
-      { type: 'filler', x: -50, y: 20, rotation: -30, scale: 0.9, seed: 202 },
-      { type: 'filler', x: 50, y: 30, rotation: 40, scale: 0.9, seed: 203 },
-      { type: 'lily', x: -30, y: -50, rotation: -20, scale: 1.1, seed: 204 },
-      { type: 'lily', x: 30, y: -40, rotation: 15, scale: 1.0, seed: 205 },
-      { type: 'daisy', x: 0, y: -30, rotation: 5, scale: 1.3, seed: 206 },
-      { type: 'daisy', x: 60, y: -10, rotation: 45, scale: 1.0, seed: 207 },
-      { type: 'tulip', x: -40, y: -10, rotation: -35, scale: 1.2, seed: 208 },
+      { type: 'vibrant_sunflower' },
+      { type: 'cheerful_daisy' },
+      { type: 'soft_pink_tulip' },
+      { type: 'yellow_mimosa' },
     ],
-    styleMode: 'pastel',
   },
   {
     id: 'quiet-sympathy',
     name: 'Quiet Sympathy',
-    description: 'Soft, gentle lily and baby\'s breath conveying warmth and peace.',
+    description: 'Soft, gentle hydrangea and lavender conveying peace.',
     flowers: [
-      { type: 'filler', x: -40, y: -30, rotation: -25, scale: 1.2, seed: 301 },
-      { type: 'filler', x: 40, y: -20, rotation: 35, scale: 1.1, seed: 302 },
-      { type: 'filler', x: 0, y: 10, rotation: 0, scale: 1.0, seed: 303 },
-      { type: 'lavender', x: -15, y: -70, rotation: -10, scale: 1.4, seed: 304 },
-      { type: 'lavender', x: 20, y: -60, rotation: 15, scale: 1.3, seed: 305 },
-      { type: 'daisy', x: -20, y: -10, rotation: -10, scale: 1.1, seed: 306 },
-      { type: 'daisy', x: 30, y: 10, rotation: 20, scale: 0.9, seed: 307 },
-      { type: 'lavender', x: -50, y: 20, rotation: -40, scale: 0.9, seed: 308 },
+      { type: 'textured_blue_hydrangea' },
+      { type: 'purple_lavender' },
+      { type: 'delicate_white_lily' },
+      { type: 'babys_breath' },
     ],
-    styleMode: 'mono',
   }
 ];
 

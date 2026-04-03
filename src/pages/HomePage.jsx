@@ -2,15 +2,14 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import FloatingPetals from '../components/FloatingPetals';
-import BouquetComposer from '../engine/BouquetComposer';
+import AIBouquetViewer from '../components/AIBouquetViewer';
 import { pageVariants, fadeInUp, staggerContainer } from '../engine/animations';
 import './HomePage.css';
 
 const demoBouquet = [
-  { type: 'rose', seed: 101, scale: 1.1, petalVariance: 0.3 },
-  { type: 'daisy', seed: 202, scale: 0.9, petalVariance: 0.25 },
-  { type: 'tulip', seed: 303, scale: 1.0, petalVariance: 0.35 },
-  { type: 'lavender', seed: 404, scale: 0.85, petalVariance: 0.2 },
+  { type: 'classic_red_rose' },
+  { type: 'romantic_pink_peony' },
+  { type: 'vibrant_sunflower' },
 ];
 
 export default function HomePage() {
@@ -59,14 +58,7 @@ export default function HomePage() {
           transition={{ duration: 1.2, delay: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
         >
           <div className="hero-bouquet-wrapper">
-            <BouquetComposer
-              flowers={demoBouquet}
-              styleMode="sketch"
-              width={340}
-              height={420}
-              seed={42}
-              showRibbon={true}
-            />
+            <AIBouquetViewer flowers={demoBouquet} />
           </div>
         </motion.div>
       </section>
