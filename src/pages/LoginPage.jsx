@@ -40,7 +40,17 @@ export default function LoginPage() {
     setError('');
 
     if (!isFirebaseConfigured) {
-      handleDemoLogin();
+      setError('Firebase is not configured. Use "Continue as Guest" to proceed.');
+      return;
+    }
+
+    if (!email.trim() || !password.trim()) {
+      setError('Please enter your email and password.');
+      return;
+    }
+
+    if (isSignUp && password.length < 6) {
+      setError('Password must be at least 6 characters.');
       return;
     }
 
@@ -61,7 +71,10 @@ export default function LoginPage() {
 
   const handleGoogle = async () => {
     setError('');
-    if (!isFirebaseConfigured) return;
+    if (!isFirebaseConfigured) {
+      setError('Google sign-in requires Firebase to be configured.');
+      return;
+    }
     try {
       await signInWithGoogle();
       navigate(returnTo);
@@ -111,7 +124,7 @@ export default function LoginPage() {
         </motion.div>
 
         <AnimatePresence>
-          {error && isFirebaseConfigured && (
+          {error && (
             <motion.div
               className="login-error"
               initial={{ opacity: 0, y: -8 }}

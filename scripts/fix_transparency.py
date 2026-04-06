@@ -111,7 +111,7 @@ def remove_checkerboard(img_path, output_path):
 
 
 def main():
-    flowers_dir = Path(__file__).resolve().parent.parent / "public" / "flowers"
+    flowers_dir = Path(__file__).resolve().parent.parent / "public" / "assets" / "flowers"
     
     if not flowers_dir.exists():
         print(f"Error: Flowers directory not found: {flowers_dir}")

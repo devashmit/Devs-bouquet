@@ -206,9 +206,15 @@
 
 .preview-canvas {
   width: 100%;
+  max-width: 460px;
+  aspect-ratio: 4 / 5;
+  background: #fffdf9;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-medium);
+  overflow: hidden;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
+  justify-content: stretch;
 }
 
 .preview-empty {

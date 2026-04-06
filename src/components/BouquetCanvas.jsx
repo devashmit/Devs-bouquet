@@ -2,248 +2,191 @@ import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import FLOWER_TYPES from '../engine/flowers';
 
-/* ─────────────────────────────────────────────────────────────────
-   THE CORRECT BOUQUET COMPOSITING ALGORITHM
+/**
+ * BouquetCanvas — SVG-based fan bouquet.
+ *
+ * Each flower is an <image> element rendered in its own coordinate space.
+ * The stem-base of every flower is placed at the grip point, then the
+ * whole group is rotated around that grip point so heads fan outward.
+ * A white rect behind each image kills any checkerboard bleed.
+ */
 
-   Every flower image (PNG) has its own stem.
-   The stem tip is at the BOTTOM-CENTER of the PNG bounding box.
+const W = 480;
+const H = 560;
+const GRIP_X = W / 2;
+const GRIP_Y = H * 0.76;   // where ribbon sits
+const IMG = 260;            // flower image square size (stem-to-head)
 
-   To form a bouquet:
-     1. Pick a single "grip point" on the canvas (lower-center).
-     2. For each flower, place the image so its bottom-center
-        sits exactly ON that grip point.
-     3. Rotate the image around that bottom-center point by
-        a fan angle — flowers lean away from center.
-     4. The flower heads naturally spread upward and outward.
-     5. The real PNG stems cross and layer as they descend
-        to the grip point — NO fake lines drawn.
-     6. A satin ribbon SVG sits exactly on the grip point, on top.
-
-   CSS that makes this work:
-     transform-origin: 50% 100%   ← bottom-center of the image
-     transform: rotate(Ndeg)      ← lean the flower
-     left: gripX - imgW/2         ← horizontally center on grip
-     top:  gripY - imgH           ← bottom edge at gripY
-─────────────────────────────────────────────────────────────────── */
-
-function getFanAngles(count) {
+function getFlowerSlots(count, gripX, gripY) {
   if (count === 0) return [];
-  if (count === 1) return [0];
+  if (count === 1) {
+    return [{ angle: 0, x: gripX, y: gripY, z: 100 }];
+  }
 
-  // Total arc grows with count but caps so outer flowers don't go horizontal
-  const totalArc = Math.min(14 + count * 9, 65); // degrees total spread
-  return Array.from({ length: count }, (_, i) => {
-    const t = count === 1 ? 0 : (i / (count - 1)) - 0.5; // -0.5 → +0.5
-    return t * totalArc;
-  });
+  const slots = [];
+  const maxArc = 120; // Maximum spread angle
+  const totalArc = Math.min(30 * (count - 1), maxArc);
+
+  for (let i = 0; i < count; i++) {
+    // t ranges from -1 (left) to +1 (right)
+    const t = (i / (count - 1)) * 2 - 1;
+    const absT = Math.abs(t);
+
+    const angle = t * (totalArc / 2);
+
+    // Spread the stem bases horizontally so no two flowers share the exact position
+    const x = gripX + (t * 15);
+    
+    // Center flower is highest (lowest Y). Outer flowers progressively lower.
+    const y = gripY + (absT * 25);
+
+    // Center flower is in front
+    const z = 100 - Math.round(absT * 100);
+
+    slots.push({ angle, x, y, z });
+  }
+  return slots;
+}
+
+function getImgSize(count) {
+  if (count <= 1) return IMG;
+  // shrink slightly as count grows, floor at 55% of IMG
+  return Math.max(IMG * 0.55, IMG * (1 - (count - 1) * 0.045));
 }
 
 function getRibbonColor(flowers) {
-  let pink = 0, warm = 0, purple = 0, neutral = 0;
+  const counts = { pink: 0, warm: 0, blue: 0, neutral: 0 };
   flowers.forEach(f => {
-    const c = FLOWER_TYPES[f.type]?.dominantColor ?? 'white';
-    if (c === 'pink' || c === 'red') pink++;
-    else if (c === 'warm') warm++;
-    else if (c === 'blue') purple++;
-    else neutral++;
+    const c = FLOWER_TYPES[f.type]?.dominantColor ?? 'neutral';
+    if (c === 'pink' || c === 'red') counts.pink++;
+    else if (c === 'warm') counts.warm++;
+    else if (c === 'blue') counts.blue++;
+    else counts.neutral++;
   });
-  const m = Math.max(pink, warm, purple, neutral);
-  if (m === pink)    return { fill: '#f2b8c6', stroke: '#d9879a', shadow: 'rgba(242,184,198,0.5)' };
-  if (m === warm)    return { fill: '#e8d4a2', stroke: '#c8b07a', shadow: 'rgba(232,212,162,0.5)' };
-  if (m === purple)  return { fill: '#cbb8e8', stroke: '#a090c8', shadow: 'rgba(203,184,232,0.5)' };
-  return               { fill: '#f0ece2', stroke: '#c8c0b0', shadow: 'rgba(240,236,226,0.5)' };
+  const max = Math.max(...Object.values(counts));
+  if (counts.pink === max) return { fill: '#f4b8c8', stroke: '#d4889a' };
+  if (counts.warm === max) return { fill: '#f0d8a0', stroke: '#c8a860' };
+  if (counts.blue === max) return { fill: '#c8b8e8', stroke: '#9880c0' };
+  return { fill: '#f0ece4', stroke: '#c0b8a8' };
 }
 
-/* Satin ribbon bow — rendered exactly at the grip point */
-function SatinRibbon({ color }) {
-  const { fill, stroke, shadow } = color;
+function RibbonBow({ fill, stroke }) {
   return (
-    // Centered at (0,0) — caller applies translate
-    <g style={{ filter: `drop-shadow(0 2px 8px ${shadow})` }}>
-      {/* Left loop */}
-      <path d="M0,0 C-6,-6 -38,-18 -42,-2 C-44,8 -24,16 0,0 Z"
-        fill={fill} stroke={stroke} strokeWidth="0.7" opacity="0.97" />
-      {/* Highlight left loop */}
-      <path d="M0,0 C-6,-6 -38,-18 -42,-2 C-44,8 -24,16 0,0 Z"
-        fill="rgba(255,255,255,0.22)" stroke="none" />
-      {/* Right loop */}
-      <path d="M0,0 C6,-6 38,-18 42,-2 C44,8 24,16 0,0 Z"
-        fill={fill} stroke={stroke} strokeWidth="0.7" opacity="0.97" />
-      <path d="M0,0 C6,-6 38,-18 42,-2 C44,8 24,16 0,0 Z"
-        fill="rgba(255,255,255,0.22)" stroke="none" />
-      {/* Left tail */}
-      <path d="M-3,3 C-10,16 -22,38 -16,58 C-10,40 -2,18 1,4 Z"
-        fill={fill} stroke={stroke} strokeWidth="0.6" opacity="0.88" />
-      {/* Right tail */}
-      <path d="M3,3 C10,16 22,38 16,58 C10,40 2,18 -1,4 Z"
-        fill={fill} stroke={stroke} strokeWidth="0.6" opacity="0.88" />
-      {/* Knot */}
-      <ellipse cx="0" cy="2" rx="7" ry="5.5"
-        fill={fill} stroke={stroke} strokeWidth="0.8" />
-      {/* Knot shine */}
-      <ellipse cx="-1.5" cy="0.5" rx="2.5" ry="1.8"
+    <g>
+      <path d="M0,0 C-10,-10 -50,-24 -52,2 C-52,16 -28,20 0,0 Z"
+        fill={fill} stroke={stroke} strokeWidth="1.2" opacity="0.95" />
+      <path d="M0,0 C10,-10 50,-24 52,2 C52,16 28,20 0,0 Z"
+        fill={fill} stroke={stroke} strokeWidth="1.2" opacity="0.95" />
+      <path d="M-4,4 C-16,24 -30,54 -22,76 C-13,55 -4,26 0,6 Z"
+        fill={fill} stroke={stroke} strokeWidth="0.9" opacity="0.88" />
+      <path d="M4,4 C16,24 30,54 22,76 C13,55 4,26 0,6 Z"
+        fill={fill} stroke={stroke} strokeWidth="0.9" opacity="0.88" />
+      <ellipse cx="0" cy="2" rx="9" ry="7"
+        fill={fill} stroke={stroke} strokeWidth="1.2" />
+      <ellipse cx="-2" cy="0" rx="3.5" ry="2.5"
         fill="rgba(255,255,255,0.5)" stroke="none" />
     </g>
   );
 }
 
-/* ─── Main Component ─────────────────────────────────────────────── */
-
 export default function BouquetCanvas({ flowers = [] }) {
   const count = flowers.length;
-
-  // Canvas dimensions (logical — actual size controlled by CSS)
-  const W = 500;
-  const H = 580;
-
-  // The single grip point where all stems converge
-  // and the ribbon bow sits.
-  const gripX = W / 2;
-  const gripY = H * 0.72;
-
-  // Image size: scale down slightly for larger counts so all fit
-  const baseImgSize = Math.min(W * 0.55, H * 0.55);
-  const imgSize = count <= 2 ? baseImgSize : baseImgSize * Math.max(0.65, 1 - (count - 2) * 0.06);
-
-  const fanAngles = useMemo(() => getFanAngles(count), [count]);
+  const imgSize = useMemo(() => getImgSize(count), [count]);
   const ribbonColor = useMemo(() => getRibbonColor(flowers), [flowers]);
+  const slots = useMemo(() => getFlowerSlots(count, GRIP_X, GRIP_Y), [count]);
 
-  // Z-order: center flower(s) in front, outermost in back
-  const zOrders = useMemo(() => {
-    return fanAngles.map((_, i) => {
-      const distFromCenter = Math.abs(i - (count - 1) / 2);
-      return Math.round((count - distFromCenter) * 10);
-    });
-  }, [fanAngles, count]);
+  // Sort by z so SVG painters algorithm renders correctly
+  const sorted = useMemo(() => {
+    return flowers
+      .map((f, i) => {
+        const slot = slots[i] || { angle: 0, x: GRIP_X, y: GRIP_Y, z: 0 };
+        return { f, i, ...slot };
+      })
+      .sort((a, b) => a.z - b.z);
+  }, [flowers, slots]);
 
   return (
     <div style={{
       width: '100%',
       height: '100%',
-      // SOLID background — this is what transparent PNG areas show through to.
-      // No gradient, no transparency — must be opaque so checkerboards disappear.
-      background: '#fffdf9',
-      borderRadius: '1.5rem',
-      position: 'relative',
+      backgroundColor: '#fdf6f0',
+      borderRadius: '1rem',
       overflow: 'hidden',
-      // Isolation creates a new stacking context — ensures blend modes
-      // apply correctly within this container only.
-      isolation: 'isolate',
+      position: 'relative',
     }}>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        preserveAspectRatio="xMidYMid meet"
+        style={{ width: '100%', height: '100%', display: 'block', backgroundColor: '#fdf6f0' }}
+      >
+        {/* Solid background — kills any transparency bleed */}
+        <rect width="100%" height="100%" fill="#fdf6f0" />
 
-      {/* ── Flower images ─────────────────────────────────────────
-          KEY RULE: each image's bottom-center sits at (gripX, gripY).
-          We rotate around transform-origin: 50% 100% (bottom-center).
-          This fans the flower heads outward while stems converge.
-      ──────────────────────────────────────────────────────────── */}
-      <AnimatePresence>
-        {flowers.map((f, i) => {
+        {/* Flowers — each rotated around its own stem base (bottom-center) */}
+        {sorted.map(({ f, i, angle, x, y }) => {
           const typeInfo = FLOWER_TYPES[f.type];
           if (!typeInfo) return null;
 
-          const angle = fanAngles[i] ?? 0;
-          const zIndex = zOrders[i] ?? i;
-
-          // Position: bottom-center of img at (gripX, gripY)
-          const left = gripX - imgSize / 2;
-          const top  = gripY - imgSize;
+          // Stem base is exactly at x, y
+          const ix = x - imgSize / 2;
+          const iy = y - imgSize;
 
           return (
-            <motion.img
-              key={`${f.type}-${i}`}
-              src={typeInfo.image}
-              alt={typeInfo.name}
-              draggable={false}
-              initial={{ opacity: 0, scale: 0.3 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.3 }}
-              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-              style={{
-                position: 'absolute',
-                left,
-                top,
-                width: imgSize,
-                height: imgSize,
-                objectFit: 'contain',
-                // CRITICAL: rotate around bottom-center (the stem tip)
-                // so the stem tip stays pinned at (gripX, gripY).
-                transformOrigin: '50% 100%',
-                transform: `rotate(${angle}deg)`,
-                zIndex,
-                pointerEvents: 'none',
-                userSelect: 'none',
-                // NO mix-blend-mode needed: these are truly transparent PNGs.
-                // The solid canvas background shows through alpha areas cleanly.
-              }}
-            />
+            <g
+              key={`flower-${f.type}-${i}`}
+              transform={`rotate(${angle}, ${x}, ${y})`}
+            >
+              <image
+                href={typeInfo.image}
+                x={ix} y={iy}
+                width={imgSize} height={imgSize}
+                preserveAspectRatio="xMidYMid meet"
+              />
+            </g>
           );
         })}
-      </AnimatePresence>
 
-      {/* ── Satin ribbon bow ───────────────────────────────────────
-          Centered exactly on the grip point — on top of all flowers.
-      ──────────────────────────────────────────────────────────── */}
-      {count >= 1 && (
-        <svg
-          viewBox={`0 0 ${W} ${H}`}
-          preserveAspectRatio="xMidYMid meet"
-          style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            pointerEvents: 'none',
-            zIndex: 9000,
-          }}
-        >
-          <g transform={`translate(${gripX}, ${gripY})`}>
-            <SatinRibbon color={ribbonColor} />
+        {/* Ribbon bow on top */}
+        {count >= 1 && (
+          <g transform={`translate(${GRIP_X}, ${GRIP_Y})`}>
+            <RibbonBow fill={ribbonColor.fill} stroke={ribbonColor.stroke} />
           </g>
-        </svg>
-      )}
-
-      {/* ── Empty state ───────────────────────────────────────────── */}
-      <AnimatePresence>
-        {count === 0 && (
-          <motion.div
-            key="empty"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={{
-              position: 'absolute',
-              inset: 0,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '1.4rem',
-              background: '#fffdf9',
-              zIndex: 1,
-            }}
-          >
-            <svg width="88" height="100" viewBox="0 0 88 100" fill="none">
-              <circle cx="30" cy="28" r="10" fill="#f2d4da" opacity="0.55"/>
-              <circle cx="58" cy="22" r="12" fill="#f2e8d4" opacity="0.5"/>
-              <circle cx="44" cy="14" r="8" fill="#dde8d4" opacity="0.5"/>
-              <path d="M44,75 C28,65 20,40 44,50 C68,40 60,65 44,75 Z"
-                stroke="#d4b4bc" strokeWidth="1.4" strokeDasharray="5 3" fill="none"/>
-              <path d="M44,75 L44,98"
-                stroke="#d4b4bc" strokeWidth="1.4" strokeDasharray="3 3"/>
-            </svg>
-            <p style={{
-              fontFamily: 'Georgia, serif',
-              fontSize: '0.9rem',
-              color: '#c0a0a8',
-              textAlign: 'center',
-              lineHeight: 1.6,
-              margin: 0,
-            }}>
-              Your bouquet begins<br />with a single flower…
-            </p>
-          </motion.div>
         )}
-      </AnimatePresence>
+      </svg>
+
+      {/* Empty state */}
+      {count === 0 && (
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '1rem',
+          backgroundColor: '#fdf6f0',
+          borderRadius: '1rem',
+        }}>
+          <svg width="72" height="88" viewBox="0 0 72 88" fill="none">
+            <circle cx="24" cy="24" r="10" fill="#f2d4da" opacity="0.5"/>
+            <circle cx="48" cy="18" r="12" fill="#f2e8d4" opacity="0.45"/>
+            <circle cx="36" cy="10" r="8" fill="#dde8d4" opacity="0.45"/>
+            <path d="M36,65 C22,56 16,34 36,44 C56,34 50,56 36,65Z"
+              stroke="#d4b4bc" strokeWidth="1.2" strokeDasharray="4 3" fill="none"/>
+            <path d="M36,65 L36,86" stroke="#d4b4bc" strokeWidth="1.2" strokeDasharray="3 3"/>
+          </svg>
+          <p style={{
+            fontFamily: 'Georgia, serif',
+            fontSize: '0.88rem',
+            color: '#c0a0a8',
+            textAlign: 'center',
+            lineHeight: 1.65,
+            margin: 0,
+          }}>
+            Your bouquet begins<br/>with a single flower…
+          </p>
+        </div>
+      )}
     </div>
   );
 }

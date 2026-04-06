@@ -41,7 +41,6 @@ export default function FlowerPicker({ onAddFlower, selectedFlowers = [] }) {
                   src={flower.image}
                   alt={flower.name}
                   className="picker-img"
-                  style={{ mixBlendMode: 'multiply' }}
                 />
                 {isSelected && (
                   <motion.div

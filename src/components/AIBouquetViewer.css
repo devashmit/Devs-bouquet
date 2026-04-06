@@ -2,23 +2,10 @@
 
 .ai-bouquet-viewer {
   width: 100%;
-  height: 560px;
-  border-radius: 1.5rem;
-  box-shadow:
-    0 2px 6px rgba(0,0,0,0.04),
-    0 12px 40px rgba(196, 96, 112, 0.08);
+  height: 100%;
+  border-radius: 0;
   overflow: hidden;
   position: relative;
-}
-
-@media (max-width: 900px) {
-  .ai-bouquet-viewer {
-    height: 400px;
-  }
-}
-
-@media (max-width: 600px) {
-  .ai-bouquet-viewer {
-    height: 320px;
-  }
+  background: #fffdf9;
+  isolation: isolate;
 }
