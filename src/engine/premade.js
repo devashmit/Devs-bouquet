@@ -6,6 +6,17 @@
 
 export const PREMADE_BOUQUETS = [
   {
+    id: 'harmonious-dream',
+    name: 'The Harmonious Dream',
+    description: 'A beautifully balanced watercolor arrangement featuring a red rose, pink peony, white lily, and yellow sunflower flowing gracefully together.',
+    flowers: [
+      { type: 'classic_red_rose' },
+      { type: 'romantic_pink_peony' },
+      { type: 'delicate_white_lily' },
+      { type: 'vibrant_sunflower' },
+    ],
+  },
+  {
     id: 'classic-romance',
     name: 'The Classic Romance',
     description: 'A timeless expression of love with red roses and peonies.',
