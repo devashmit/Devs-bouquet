@@ -5,87 +5,116 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 const FLOWERS_DIR = path.join(__dirname, '../public/assets/flowers');
-const TEMPLATE_DIR = path.join(__dirname, '../public/assets/template');
 
-if (!fs.existsSync(TEMPLATE_DIR)) {
-  fs.mkdirSync(TEMPLATE_DIR, { recursive: true });
+function isNearGrey(r, g, b, tolerance = 22) {
+  const avg = (r + g + b) / 3;
+  if (avg < 155) return false;
+  const spread = Math.max(r, g, b) - Math.min(r, g, b);
+  return spread < tolerance;
 }
 
-async function removeBackgroundAlpha(imagePath, targetSize) {
-  console.log(`Processing with transparency: ${imagePath}`);
+async function removeCheckerboard(filePath) {
+  console.log(`Flood-fill processing: ${path.basename(filePath)}`);
   try {
-    let imgPipeline = sharp(imagePath);
-    if (targetSize) {
-      imgPipeline = imgPipeline.resize(targetSize.width, targetSize.height, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 0 } });
-    }
-
-    const { data, info } = await imgPipeline
+    const { data, info } = await sharp(filePath)
       .ensureAlpha()
       .raw()
       .toBuffer({ resolveWithObject: true });
 
-    for (let i = 0; i < data.length; i += 4) {
-      const r = data[i];
-      const g = data[i + 1];
-      const b = data[i + 2];
-
-      if (r > 230 && g > 230 && b > 230) {
-        data[i + 3] = 0;
-      } else if (r > 210 && g > 210 && b > 210) {
-        const avg = (r + g + b) / 3;
-        const diff = avg - 210; 
-        const a = 255 - Math.min(255, diff * 10);
-        data[i + 3] = Math.min(data[i + 3], a);
+    const w = info.width;
+    const h = info.height;
+    
+    const checkerMask = new Uint8Array(w * h);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const i = (y * w + x) * 4;
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        const a = data[i + 3];
+        if (a > 200 && isNearGrey(r, g, b, 22)) {
+          checkerMask[y * w + x] = 1;
+        }
       }
     }
 
-    const outputBuffer = await sharp(data, {
-      raw: { width: info.width, height: info.height, channels: 4 }
-    }).png().toBuffer();
+    const visited = new Uint8Array(w * h);
+    const background = new Uint8Array(w * h);
+    const queue = [];
 
-    return outputBuffer;
+    // Seed edges
+    for (let x = 0; x < w; x++) {
+      if (checkerMask[x] && !visited[x]) { queue.push({x, y: 0}); visited[x] = 1; }
+      const bottomIdx = (h-1)*w + x;
+      if (checkerMask[bottomIdx] && !visited[bottomIdx]) { queue.push({x, y: h-1}); visited[bottomIdx] = 1; }
+    }
+    for (let y = 0; y < h; y++) {
+      if (checkerMask[y*w] && !visited[y*w]) { queue.push({x: 0, y}); visited[y*w] = 1; }
+      const rightIdx = y*w + w-1;
+      if (checkerMask[rightIdx] && !visited[rightIdx]) { queue.push({x: w-1, y}); visited[rightIdx] = 1; }
+    }
+
+    const dirs = [[-1,0], [1,0], [0,-1], [0,1], [-1,-1], [-1,1], [1,-1], [1,1]];
+    let qIdx = 0;
+    
+    // Process queue
+    while (qIdx < queue.length) {
+      const p = queue[qIdx++];
+      const cy = p.y, cx = p.x;
+      background[cy * w + cx] = 1;
+
+      for (let i = 0; i < 8; i++) {
+        const nx = cx + dirs[i][0];
+        const ny = cy + dirs[i][1];
+        if (nx >= 0 && ny >= 0 && nx < w && ny < h) {
+          const idx = ny * w + nx;
+          if (!visited[idx]) {
+            visited[idx] = 1;
+            const pxIdx = idx * 4;
+            const r = data[pxIdx];
+            const g = data[pxIdx + 1];
+            const b = data[pxIdx + 2];
+            const a = data[pxIdx + 3];
+
+            if (checkerMask[idx] || (a > 200 && isNearGrey(r, g, b, 18))) {
+              queue.push({x: nx, y: ny});
+            }
+          }
+        }
+      }
+    }
+
+    // Apply alpha 
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        if (background[y * w + x]) {
+          data[(y * w + x) * 4 + 3] = 0; // Alpha 0
+        }
+      }
+    }
+
+    const tmpPath = filePath.replace('.png', '_tmp.png');
+    await sharp(data, {
+      raw: { width: w, height: h, channels: 4 }
+    }).png().toFile(tmpPath);
+    
+    fs.renameSync(tmpPath, filePath);
+    console.log(`Saved ${path.basename(filePath)} (Native Res Alpha BFS)`);
   } catch (e) {
-    console.error(`Error processing ${imagePath}:`, e);
-    return null;
+    console.error(`Error processing ${filePath}:`, e);
   }
 }
 
 async function processAll() {
-  console.log('--- Processing Base Assets ---');
-  const baseStemsDest = path.join(TEMPLATE_DIR, 'base_stems.png');
-  const baseStemsSrc = path.join(TEMPLATE_DIR, 'base_stems_raw.png');
-  if (fs.existsSync(baseStemsSrc)) {
-    await sharp(baseStemsSrc).resize(800, 900, { fit: 'cover' }).toFile(baseStemsDest);
-    console.log('Saved base_stems.png at 800x900px');
-  }
-
-  const ribbonDest = path.join(TEMPLATE_DIR, 'front_ribbon.png');
-  const ribbonSrc = path.join(TEMPLATE_DIR, 'front_ribbon_raw.png');
-  if (fs.existsSync(ribbonSrc)) {
-    const result = await removeBackgroundAlpha(ribbonSrc, { width: 300, height: 250 });
-    if (result) await sharp(result).toFile(ribbonDest);
-    console.log('Saved front_ribbon.png with transparency at 300x250px');
-  }
-
-  console.log('--- Processing Flower Assets ---');
-  if (fs.existsSync(FLOWERS_DIR)) {
-    const files = fs.readdirSync(FLOWERS_DIR);
-    for (const file of files) {
-      if (file.endsWith('.png') && !file.includes('_raw.png')) {
-        const filePath = path.join(FLOWERS_DIR, file);
-        const tmpPath = path.join(FLOWERS_DIR, `tmp_${file}`);
-        const result = await removeBackgroundAlpha(filePath, { width: 250, height: 250 });
-        if (result) {
-          await sharp(result).toFile(tmpPath);
-          fs.renameSync(tmpPath, filePath);
-          console.log(`Processed ${file} with transparency at 250x250px`);
-        }
-      }
+  // First ensure raw files are copied to remove contaminated states
+  const files = fs.readdirSync(FLOWERS_DIR);
+  for (const file of files) {
+    if (file.endsWith('.png') && !file.includes('_raw.png') && !file.includes('harmonious_dream')) {
+      await removeCheckerboard(path.join(FLOWERS_DIR, file));
     }
   }
-  console.log('All processing complete!');
+  console.log('All BFS processing complete!');
 }
 
 processAll();

@@ -8,7 +8,7 @@ import FLOWER_TYPES from '../engine/flowers';
  */
 
 const DEFAULT_PROMPT_TEMPLATE = 
-  "A beautiful hand-tied bouquet of [SELECTED_FLOWERS], flowers naturally overlapping and layered at different heights, lush green foliage filling the gaps, stems gathered and tied with a soft elegant [RIBBON_COLOR] satin ribbon bow at the base. Soft watercolor illustration style, delicate linework, pastel palette, dreamy and romantic mood, cream white background. Studio quality, highly detailed.";
+  "A beautifully composed, hand-tied florist bouquet featuring [SELECTED_FLOWERS]. The flowers are organically and naturally overlapping, layered at different heights in a dense professional arrangement. Lush green delicate foliage filling the gaps. The converging stems are gathered tightly at the bottom and tied with a soft, elegant [RIBBON_COLOR] satin ribbon bow. Soft, dreamy watercolor illustration style, highly detailed delicate linework, premium botanical art, isolated against a pure solid cream white background. Masterpiece, high resolution, soft studio lighting.";
 
 /**
  * Determines the ribbon color based on the dominant flowers in the selection.
@@ -69,7 +69,7 @@ export function buildBouquetPrompt(flowers) {
 
 /**
  * Calls the AI Image Generation API.
- * Currently supports a Mock mode for demonstration.
+ * Uses OpenAI if the key is provided, otherwise falls back to a free zero-config generative API.
  */
 export async function generateBouquetImage(flowers) {
   const prompt = buildBouquetPrompt(flowers);
@@ -81,18 +81,16 @@ export async function generateBouquetImage(flowers) {
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
 
   if (!apiKey || apiKey === "YOUR_OPENAI_API_KEY") {
-    // MOCK MODE: Simulate a delay and return a random "pre-generated" bouquet or a placeholder
-    // In a real scenario, this would be a real API call.
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    // REAL AI GENERATION (ZERO-CONFIG FALLBACK)
+    // Uses pollinations.ai to generate raw image binaries based on the encoded prompt.
+    const encodedPrompt = encodeURIComponent(prompt);
+    const uniqueSeed = Math.floor(Math.random() * 1000000); // Unique image every time
+    const freeAiUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&nologo=true&seed=${uniqueSeed}`;
     
-    // For demo purposes, we return a "loading" or "sample" image 
-    if (flowers.length === 1) {
-      const type = flowers[0].type;
-      return FLOWER_TYPES[type]?.image || "/assets/flowers/classic_red_rose.png";
-    }
+    // Simulate generation queue delay so the UI loader registers cleanly
+    await new Promise(resolve => setTimeout(resolve, 800));
     
-    // For multiple flowers, dynamic composition in browser
-    return "MOCK_COMPOSITE";
+    return freeAiUrl;
   }
 
   try {
@@ -110,6 +108,10 @@ export async function generateBouquetImage(flowers) {
         quality: "hd"
       })
     });
+
+    if (!response.ok) {
+       throw new Error(`OpenAI API failed: ${response.statusText}`);
+    }
 
     const data = await response.json();
     return data.data[0].url;
