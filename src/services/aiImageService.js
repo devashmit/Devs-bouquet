@@ -7,8 +7,8 @@ import FLOWER_TYPES from '../engine/flowers';
  * the image generation API (DALL-E 3, Google Imagen, etc.)
  */
 
-const DEFAULT_PROMPT_TEMPLATE = 
-  "A beautifully composed, hand-tied florist bouquet featuring [SELECTED_FLOWERS]. The flowers are organically and naturally overlapping, layered at different heights in a dense professional arrangement. Lush green delicate foliage filling the gaps. The converging stems are gathered tightly at the bottom and tied with a soft, elegant [RIBBON_COLOR] satin ribbon bow. Soft, dreamy watercolor illustration style, highly detailed delicate linework, premium botanical art, isolated against a pure solid cream white background. Masterpiece, high resolution, soft studio lighting.";
+const DEFAULT_PROMPT_TEMPLATE =
+  "A professional hand-tied florist bouquet of [SELECTED_FLOWERS] arranged in a natural dome fan shape. Flowers at different heights naturally overlapping — tallest blooms at the back, lush focal flowers in front. Dense lush green fern fronds and delicate leaves radiating outward in the background. Long slender stems gathered tightly to a single grip point tied with an elegant [RIBBON_COLOR] satin ribbon bow with two loops and flowing tails. Botanical watercolor illustration, fine ink linework, premium art print quality, pure cream white background, vertical composition, full bouquet visible.";
 
 /**
  * Determines the ribbon color based on the dominant flowers in the selection.
