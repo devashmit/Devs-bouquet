@@ -1,42 +1,37 @@
 import React, { useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import FLOWER_TYPES from '../engine/flowers';
 
 /**
- * BouquetCanvas — instant, offline bouquet compositor.
+ * BouquetCanvas — fan bouquet compositor using real PNG flower images.
  *
- * Layout algorithm:
- * - All flowers fan out from a single grip/tie point at the bottom-center
- * - Each flower image is placed so its bottom-center sits at the grip point
- * - The group is then rotated around the grip point by its fan angle
- * - Center flower is upright (0°), outer flowers lean left/right
- * - A ribbon bow is drawn on top of the grip point
- * - Solid cream background — no transparency, no checkerboard
+ * Key insight: each PNG has the flower head in the TOP ~65% and stem in the
+ * bottom ~35%. We only show the flower head portion per flower (clipped),
+ * and draw SVG stems separately converging at the grip point.
+ * This way flowers don't cover each other with white rectangles.
  */
 
 const W = 500;
-const H = 580;
+const H = 600;
 const GRIP_X = W / 2;
-const GRIP_Y = H * 0.78;
+const GRIP_Y = H * 0.75; // ribbon/tie point
+
+// How much of the image is "flower head" vs stem (top 65%)
+const HEAD_FRACTION = 0.68;
 
 function getFanAngles(count) {
   if (count === 0) return [];
   if (count === 1) return [0];
-
-  // Spread grows with count, max 130°
-  const totalArc = Math.min(22 + (count - 1) * 14, 130);
-
+  const totalArc = Math.min(20 + (count - 1) * 13, 120);
   return Array.from({ length: count }, (_, i) => {
-    const t = (i / (count - 1)) - 0.5; // -0.5 … +0.5
+    const t = (i / (count - 1)) - 0.5;
     return t * totalArc;
   });
 }
 
 function getFlowerSize(count) {
-  // Single flower fills nicely; shrink as more are added
-  const base = Math.min(W * 0.68, H * 0.72);
+  const base = 300;
   if (count <= 1) return base;
-  return Math.max(base * 0.48, base * (1 - (count - 1) * 0.048));
+  return Math.max(base * 0.5, base * (1 - (count - 1) * 0.042));
 }
 
 function getRibbonColors(flowers) {
@@ -49,64 +44,58 @@ function getRibbonColors(flowers) {
     else c.white++;
   });
   const max = Math.max(...Object.values(c));
-  if (c.pink === max) return { fill: '#f4b8c8', stroke: '#d4889a', shine: '#fde8f0' };
-  if (c.warm === max) return { fill: '#f0d890', stroke: '#c8a840', shine: '#fdf4d0' };
-  if (c.blue === max) return { fill: '#c8b8e8', stroke: '#9878c8', shine: '#ece8f8' };
-  return { fill: '#f0ece4', stroke: '#c0b0a0', shine: '#faf8f4' };
+  if (c.pink === max) return { fill: '#f4b8c8', stroke: '#d4889a' };
+  if (c.warm === max) return { fill: '#f0d890', stroke: '#c8a840' };
+  if (c.blue === max) return { fill: '#c8b8e8', stroke: '#9878c8' };
+  return { fill: '#f0ece4', stroke: '#c0b0a0' };
 }
 
-function Ribbon({ x, y, colors }) {
-  const { fill, stroke, shine } = colors;
+function Ribbon({ x, y, fill, stroke }) {
   return (
     <g transform={`translate(${x},${y})`}>
-      {/* Left loop */}
-      <path d="M0,0 C-8,-12 -52,-26 -54,0 C-54,18 -28,22 0,0Z"
+      <path d="M0,0 C-8,-12 -50,-24 -52,2 C-52,16 -26,20 0,0Z"
         fill={fill} stroke={stroke} strokeWidth="1.3" opacity="0.95" />
-      <path d="M0,0 C-8,-12 -52,-26 -54,0 C-54,18 -28,22 0,0Z"
-        fill={shine} stroke="none" opacity="0.3" />
-      {/* Right loop */}
-      <path d="M0,0 C8,-12 52,-26 54,0 C54,18 28,22 0,0Z"
+      <path d="M0,0 C8,-12 50,-24 52,2 C52,16 26,20 0,0Z"
         fill={fill} stroke={stroke} strokeWidth="1.3" opacity="0.95" />
-      <path d="M0,0 C8,-12 52,-26 54,0 C54,18 28,22 0,0Z"
-        fill={shine} stroke="none" opacity="0.3" />
-      {/* Left tail */}
-      <path d="M-5,5 C-18,28 -34,60 -26,84 C-16,60 -6,28 0,8Z"
+      <path d="M-4,4 C-16,26 -30,56 -22,78 C-13,56 -4,26 0,6Z"
         fill={fill} stroke={stroke} strokeWidth="1" opacity="0.88" />
-      {/* Right tail */}
-      <path d="M5,5 C18,28 34,60 26,84 C16,60 6,28 0,8Z"
+      <path d="M4,4 C16,26 30,56 22,78 C13,56 4,26 0,6Z"
         fill={fill} stroke={stroke} strokeWidth="1" opacity="0.88" />
-      {/* Knot */}
-      <ellipse cx="0" cy="3" rx="10" ry="8"
+      <ellipse cx="0" cy="3" rx="9" ry="7"
         fill={fill} stroke={stroke} strokeWidth="1.4" />
-      <ellipse cx="-2" cy="1" rx="4" ry="3"
-        fill={shine} stroke="none" opacity="0.6" />
+      <ellipse cx="-2" cy="1" rx="3.5" ry="2.5"
+        fill="rgba(255,255,255,0.55)" stroke="none" />
     </g>
   );
 }
 
 export default function BouquetCanvas({ flowers = [] }) {
   const count = flowers.length;
-
   const fanAngles = useMemo(() => getFanAngles(count), [count]);
   const flowerSize = useMemo(() => getFlowerSize(count), [count]);
   const ribbonColors = useMemo(() => getRibbonColors(flowers), [flowers]);
 
-  // Z-order: center flowers render last (on top), outer flowers behind
+  // Paint order: outer flowers behind, center flowers in front
   const renderOrder = useMemo(() => {
     return flowers
-      .map((f, i) => {
-        const distFromCenter = Math.abs(i - (count - 1) / 2);
-        return { f, i, z: count - distFromCenter, angle: fanAngles[i] ?? 0 };
-      })
-      .sort((a, b) => a.z - b.z); // paint back-to-front
+      .map((f, i) => ({
+        f, i,
+        angle: fanAngles[i] ?? 0,
+        z: count - Math.abs(i - (count - 1) / 2),
+      }))
+      .sort((a, b) => a.z - b.z);
   }, [flowers, fanAngles, count]);
 
   if (count === 0) return null;
 
+  // The stem length = bottom fraction of the image
+  const stemLen = flowerSize * (1 - HEAD_FRACTION);
+  // The head height = top fraction
+  const headH = flowerSize * HEAD_FRACTION;
+
   return (
     <div style={{
-      width: '100%',
-      height: '100%',
+      width: '100%', height: '100%',
       background: '#fffdf9',
       borderRadius: '1rem',
       overflow: 'hidden',
@@ -117,91 +106,89 @@ export default function BouquetCanvas({ flowers = [] }) {
         preserveAspectRatio="xMidYMid meet"
         style={{ width: '100%', height: '100%', display: 'block' }}
       >
-        {/* Paper background */}
+        <defs>
+          {/* Clip path for each flower — only show the head portion */}
+          {renderOrder.map(({ i }) => (
+            <clipPath key={`clip-${i}`} id={`clip-${i}`}>
+              {/* In the rotated coordinate space, clip to top HEAD_FRACTION of image */}
+              <rect
+                x={GRIP_X - flowerSize / 2}
+                y={GRIP_Y - flowerSize}
+                width={flowerSize}
+                height={headH}
+              />
+            </clipPath>
+          ))}
+        </defs>
+
+        {/* Solid background */}
         <rect width={W} height={H} fill="#fffdf9" />
 
-        {/* Subtle paper texture dots */}
-        {[...Array(18)].map((_, i) => {
-          const px = ((i * 137.5) % 1) * W;
-          const py = ((i * 97.3) % 1) * H * 0.85;
-          return (
-            <circle key={i} cx={px} cy={py} r={0.8 + (i % 3) * 0.6}
-              fill="#e8d8d0" opacity={0.12 + (i % 4) * 0.04} />
-          );
-        })}
-
-        {/* Stems — drawn first, behind everything */}
+        {/* ── STEMS (behind flowers) ── */}
         <g>
           {renderOrder.map(({ i, angle }) => {
             const rad = (angle * Math.PI) / 180;
-            const stemLen = flowerSize * 0.68;
-            // Stem tip is at the flower head center (top of stem)
-            const tipX = GRIP_X - Math.sin(rad) * stemLen;
-            const tipY = GRIP_Y - Math.cos(rad) * stemLen;
-            // Slight curve control point
-            const cpX = GRIP_X + (tipX - GRIP_X) * 0.4 + Math.sin(rad) * 8;
-            const cpY = GRIP_Y + (tipY - GRIP_Y) * 0.5;
+            // Stem goes from grip up to where the flower head base sits
+            const dist = flowerSize * HEAD_FRACTION * 0.85;
+            const endX = GRIP_X - Math.sin(rad) * dist;
+            const endY = GRIP_Y - Math.cos(rad) * dist;
+            const cpX = GRIP_X - Math.sin(rad) * dist * 0.5 + Math.cos(rad) * 6;
+            const cpY = GRIP_Y - Math.cos(rad) * dist * 0.5 + Math.sin(rad) * 6;
             return (
-              <path
-                key={`stem-${i}`}
-                d={`M ${GRIP_X} ${GRIP_Y} Q ${cpX} ${cpY} ${tipX} ${tipY}`}
-                fill="none"
-                stroke="#6a8a52"
-                strokeWidth="2.4"
-                strokeLinecap="round"
-                opacity="0.7"
+              <path key={`stem-${i}`}
+                d={`M ${GRIP_X} ${GRIP_Y} Q ${cpX} ${cpY} ${endX} ${endY}`}
+                fill="none" stroke="#6a8a52" strokeWidth="2.5"
+                strokeLinecap="round" opacity="0.72"
               />
             );
           })}
-          {/* Stem bundle below grip */}
-          {[...Array(Math.min(count + 1, 7))].map((_, i) => {
-            const ox = (i - Math.min(count, 6) / 2) * 3;
+          {/* Bundle below grip */}
+          {[...Array(Math.min(count + 2, 8))].map((_, i) => {
+            const ox = (i - Math.min(count + 1, 7) / 2) * 2.8;
             return (
-              <line key={`bundle-${i}`}
+              <line key={`b-${i}`}
                 x1={GRIP_X + ox} y1={GRIP_Y + 2}
-                x2={GRIP_X + ox * 1.3} y2={H + 10}
+                x2={GRIP_X + ox * 1.4} y2={H + 20}
                 stroke="#6a8a52" strokeWidth="2.2"
-                strokeLinecap="round" opacity="0.65"
+                strokeLinecap="round" opacity="0.6"
               />
             );
           })}
         </g>
 
-        {/* Flower images — each rotated around grip point */}
+        {/* ── FLOWER HEADS (clipped, rotated around grip) ── */}
         {renderOrder.map(({ f, i, angle }) => {
           const typeInfo = FLOWER_TYPES[f.type];
           if (!typeInfo) return null;
 
-          // Image placed so bottom-center = grip point, then rotated
           const ix = GRIP_X - flowerSize / 2;
           const iy = GRIP_Y - flowerSize;
 
           return (
-            <AnimatePresence key={`flower-${f.type}-${i}`}>
-              <motion.g
-                transform={`rotate(${angle}, ${GRIP_X}, ${GRIP_Y})`}
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.3 }}
-                transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1], delay: i * 0.05 }}
-                style={{ transformOrigin: `${GRIP_X}px ${GRIP_Y}px` }}
-              >
-                {/* White backing kills any PNG transparency */}
-                <rect x={ix} y={iy} width={flowerSize} height={flowerSize}
-                  fill="#fffdf9" rx="6" />
-                <image
-                  href={typeInfo.image}
-                  x={ix} y={iy}
-                  width={flowerSize} height={flowerSize}
-                  preserveAspectRatio="xMidYMid meet"
-                />
-              </motion.g>
-            </AnimatePresence>
+            <g
+              key={`flower-${i}-${f.type}`}
+              transform={`rotate(${angle}, ${GRIP_X}, ${GRIP_Y})`}
+              clipPath={`url(#clip-${i})`}
+            >
+              {/* Cream backing only behind the head area */}
+              <rect x={ix} y={iy} width={flowerSize} height={headH}
+                fill="#fffdf9" />
+              <image
+                href={typeInfo.image}
+                x={ix} y={iy}
+                width={flowerSize} height={flowerSize}
+                preserveAspectRatio="xMidYMid meet"
+              />
+            </g>
           );
         })}
 
-        {/* Ribbon bow — always on top */}
-        <Ribbon x={GRIP_X} y={GRIP_Y} colors={ribbonColors} />
+        {/* ── RIBBON (always on top) ── */}
+        <Ribbon
+          x={GRIP_X} y={GRIP_Y}
+          fill={ribbonColors.fill}
+          stroke={ribbonColors.stroke}
+        />
       </svg>
     </div>
   );
