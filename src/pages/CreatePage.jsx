@@ -6,6 +6,7 @@ import AIBouquetViewer from '../components/AIBouquetViewer';
 import FlowerPicker from '../components/FlowerPicker';
 import { createBouquet } from '../firebase/bouquets';
 import { pageVariants } from '../engine/animations';
+import FLOWER_TYPES from '../engine/flowers';
 import './CreatePage.css';
 
 const OCCASIONS = [
@@ -32,8 +33,19 @@ export default function CreatePage() {
   const [bouquetSeed] = useState(() => Math.floor(Math.random() * 100000));
 
   const handleAddFlower = (flower) => {
-    if (flowers.length >= 10) return; // Limit to 10 for AI prompt quality
+    if (flowers.length >= 12) return; // Limit to 12
     setFlowers((prev) => [...prev, flower]);
+  };
+
+  const handleRandomize = () => {
+    const catalogKeys = Object.keys(FLOWER_TYPES);
+    const count = Math.floor(Math.random() * 5) + 6; // Random amount between 6 and 10
+    const newFlowers = [];
+    for (let i = 0; i < count; i++) {
+      const randomKey = catalogKeys[Math.floor(Math.random() * catalogKeys.length)];
+      newFlowers.push({ type: randomKey });
+    }
+    setFlowers(newFlowers);
   };
 
   const handleRemoveFlower = (index) => {
@@ -76,8 +88,8 @@ export default function CreatePage() {
         {/* Left Panel — Controls */}
         <div className="create-panel create-controls">
           <div className="panel-header">
-            <h2>Draw a Bouquet</h2>
-            <p className="tagline">Every petal drawn with a reason.</p>
+            <h2>Build a Bouquet</h2>
+            <p className="tagline">Select your flowers, and we'll arrange them naturally.</p>
           </div>
 
           <FlowerPicker
@@ -176,6 +188,14 @@ export default function CreatePage() {
             >
               {saving ? 'Saving your bouquet…' : flowers.length < 1 ? 'Add a flower first' : '✿ Send Bouquet'}
             </button>
+            <button
+              className="btn btn-secondary btn-lg"
+              onClick={handleRandomize}
+              id="create-randomize"
+              style={{ width: '100%', marginTop: '0.5rem' }}
+            >
+              ✨ Randomize Arrangement
+            </button>
           </div>
         </div>
 
@@ -183,7 +203,8 @@ export default function CreatePage() {
         <div className="create-panel create-preview">
           <div className="preview-label">
             <span>Live Preview</span>
-            {flowers.length < 1 && <span className="subtext" style={{ color: 'var(--rose-deep)' }}>Add your first flower to begin...</span>}
+            {flowers.length < 1 && <span className="subtext" style={{ color: 'var(--rose-deep)' }}>Pick a flower to generate your bouquet...</span>}
+            {flowers.length > 0 && <span className="subtext" style={{ color: '#a0b890', fontSize: '0.78rem' }}>✨ AI generating…</span>}
           </div>
           <div className="preview-canvas" ref={bouquetRef}>
             <AIBouquetViewer flowers={flowers} />

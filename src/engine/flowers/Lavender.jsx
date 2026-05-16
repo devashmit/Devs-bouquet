@@ -1,42 +1,27 @@
 import React from 'react';
-import { createRng } from '../randomizer';
 
-// Lavender spike — dense purple florets
-export default function Lavender({ x = 0, y = 0, scale = 1, rotation = 0, seed = 1, styleMode = 'sketch' }) {
-  const rng = createRng(seed);
-  const j = (v, a) => v + (rng.random() - 0.5) * 2 * a;
-
-  const isMono = styleMode === 'mono';
-  const fill   = isMono ? 'rgba(160,155,175,0.8)' : 'rgba(130,100,190,0.75)';
-  const dfill  = isMono ? 'rgba(130,125,145,0.9)' : 'rgba(100,70,160,0.85)';
-  const sk     = isMono ? '#444' : '#5a3a8a';
-  const stemC  = isMono ? '#666' : '#6a8a5a';
-
-  const floretCount = 14;
-
+export default function Lavender(props) {
   return (
-    <g transform={`translate(${x},${y}) rotate(${rotation}) scale(${scale})`}>
-      {/* Stem */}
-      <path d={`M${j(0,1)},0 C${j(1,2)},${j(-20,3)} ${j(-1,2)},${j(-44,3)} ${j(0,1)},${j(-65,3)}`}
-        fill="none" stroke={stemC} strokeWidth="1.3" strokeLinecap="round" />
-      {/* Dense florets */}
-      {Array.from({ length: floretCount }).map((_, i) => {
-        const t = i / (floretCount - 1);
-        const yOff = -t * 52 - 12;
-        const side = i % 2 === 0 ? 1 : -1;
-        const xOff = side * j(5, 2);
-        const tilt = side * j(22, 6);
-        const f = i > floretCount * 0.6 ? dfill : fill; // darker at top
-        return (
-          <ellipse key={i}
-            cx={j(xOff, 1.5)} cy={j(yOff, 2)}
-            rx={j(4, 0.8)} ry={j(6, 1)}
-            fill={f} stroke={sk} strokeWidth="0.7"
-            opacity={0.7 + rng.random() * 0.3}
-            transform={`rotate(${tilt}, ${xOff}, ${yOff})`}
-          />
-        );
-      })}
-    </g>
+    <svg viewBox="0 0 100 100" width="100%" height="100%" {...props}>
+      {/* Lavender - Long purple spike with tiny florets */}
+      <line x1="50" y1="15" x2="50" y2="95" stroke="#81c784" strokeWidth="2" strokeLinecap="round" />
+      <g fill="#7e57c2">
+        {/* Tiny florets clustered along the stem */}
+        {[...Array(12)].map((_, i) => (
+          <ellipse key={`l1-${i}`} cx="47" cy={20 + i * 5} rx="4" ry="2" transform={`rotate(-20, 47, ${20 + i * 5})`} />
+        ))}
+        {[...Array(12)].map((_, i) => (
+          <ellipse key={`l2-${i}`} cx="53" cy={22 + i * 5} rx="4" ry="2" transform={`rotate(20, 53, ${22 + i * 5})`} />
+        ))}
+        {[...Array(10)].map((_, i) => (
+          <ellipse key={`l3-${i}`} cx="50" cy={18 + i * 6} rx="3" ry="3" />
+        ))}
+      </g>
+      <g fill="#b39ddb">
+        {[...Array(8)].map((_, i) => (
+          <circle key={`hl-${i}`} cx="48" cy={25 + i * 7} r="1.5" />
+        ))}
+      </g>
+    </svg>
   );
 }

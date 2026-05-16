@@ -8,7 +8,7 @@ import FLOWER_TYPES from '../engine/flowers';
  */
 
 const DEFAULT_PROMPT_TEMPLATE =
-  "A professional hand-tied florist bouquet of [SELECTED_FLOWERS] arranged in a natural dome fan shape. Flowers at different heights naturally overlapping — tallest blooms at the back, lush focal flowers in front. Dense lush green fern fronds and delicate leaves radiating outward in the background. Long slender stems gathered tightly to a single grip point tied with an elegant [RIBBON_COLOR] satin ribbon bow with two loops and flowing tails. Botanical watercolor illustration, fine ink linework, premium art print quality, pure cream white background, vertical composition, full bouquet visible.";
+  "Lush professional watercolor bouquet illustration, light off-white textured background. Bouquet content: [SELECTED_FLOWERS]. Style: Exquisite botanical watercolor painting, soft wet-on-wet technique, delicate color gradients, subtle bleeding between colors, translucent layers, visible paper texture. Arrangement: Full, balanced, romantic bouquet with flowers naturally fanned out, overlapping petals, varied stem lengths. Rich green foliage including ferns, monstera, and fine leaves for contrast. Finish with a large luxurious satin [RIBBON_COLOR] ribbon bow tied around the stems, with realistic ribbon folds and soft shadows. Soft diffused lighting, gentle highlights on petals, high detail, masterpiece, intricate botanical art, warm and elegant atmosphere.";
 
 /**
  * Determines the ribbon color based on the dominant flowers in the selection.

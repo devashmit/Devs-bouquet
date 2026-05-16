@@ -1,41 +1,36 @@
 import React from 'react';
-import { createRng } from '../randomizer';
 
-// Small star-shaped wildflower (like the pink star in the reference image)
-export default function Lily({ x = 0, y = 0, scale = 1, rotation = 0, seed = 1, styleMode = 'sketch' }) {
-  const rng = createRng(seed);
-  const j = (v, a) => v + (rng.random() - 0.5) * 2 * a;
-
-  const isMono = styleMode === 'mono';
-  const isPastel = styleMode === 'pastel';
-  const fill   = isMono ? '#e0e0e0' : isPastel ? '#f8e0f0' : '#f0c0d8';
-  const stroke = isMono ? '#555'    : isPastel ? '#c0a0b8' : '#b07090';
-
-  const petalCount = 5;
-
+export default function Lily(props) {
   return (
-    <g transform={`translate(${x},${y}) rotate(${rotation}) scale(${scale})`}>
-      {Array.from({ length: petalCount }).map((_, i) => {
-        const angle = (i / petalCount) * 360 - 90 + j(0, 5);
-        const rad = (angle * Math.PI) / 180;
-        const len = j(20, 3);
-        const w = j(6, 1);
-        const tipX = Math.cos(rad) * len;
-        const tipY = Math.sin(rad) * len;
-        const lx = Math.cos(rad + Math.PI / 2) * w;
-        const ly = Math.sin(rad + Math.PI / 2) * w;
-        return (
-          <path key={i}
-            d={`M${j(lx*0.3,1)},${j(ly*0.3,1)} C${j(lx+tipX*0.3,2)},${j(ly+tipY*0.3,2)} ${j(tipX*0.8+lx*0.2,2)},${j(tipY*0.8+ly*0.2,2)} ${j(tipX,2)},${j(tipY,2)} C${j(tipX*0.8-lx*0.2,2)},${j(tipY*0.8-ly*0.2,2)} ${j(-lx+tipX*0.3,2)},${j(-ly+tipY*0.3,2)} ${j(-lx*0.3,1)},${j(-ly*0.3,1)} Z`}
-            fill={fill} stroke={stroke} strokeWidth="1"
-            opacity={0.85 + rng.random() * 0.15}
-          />
-        );
-      })}
-      {/* Center */}
-      <circle cx={j(0,1)} cy={j(0,1)} r={j(4,1)}
-        fill={isMono ? '#bbb' : isPastel ? '#f8e0a0' : '#f5d060'}
-        stroke={isMono ? '#666' : '#c09030'} strokeWidth="0.8" />
-    </g>
+    <svg viewBox="0 0 100 100" width="100%" height="100%" {...props}>
+      {/* Lily - 6 flared petals + long stamens */}
+      <g fill="#ffffff" stroke="#e8eaf6" strokeWidth="1">
+        <path d="M50 50 Q40 30 50 5 Q60 30 50 50 Z" transform="rotate(0, 50, 50)" />
+        <path d="M50 50 Q40 30 50 5 Q60 30 50 50 Z" transform="rotate(60, 50, 50)" />
+        <path d="M50 50 Q40 30 50 5 Q60 30 50 50 Z" transform="rotate(120, 50, 50)" />
+        <path d="M50 50 Q40 30 50 5 Q60 30 50 50 Z" transform="rotate(180, 50, 50)" />
+        <path d="M50 50 Q40 30 50 5 Q60 30 50 50 Z" transform="rotate(240, 50, 50)" />
+        <path d="M50 50 Q40 30 50 5 Q60 30 50 50 Z" transform="rotate(300, 50, 50)" />
+      </g>
+      {/* Center detail */}
+      <circle cx="50" cy="50" r="6" fill="#cddc39" />
+      {/* Stamens */}
+      <g stroke="#9e9d24" strokeWidth="1" fill="#795548">
+        <line x1="50" y1="50" x2="40" y2="25" />
+        <ellipse cx="40" cy="25" rx="2" ry="4" transform="rotate(20, 40, 25)" />
+        
+        <line x1="50" y1="50" x2="70" y2="35" />
+        <ellipse cx="70" cy="35" rx="2" ry="4" transform="rotate(60, 70, 35)" />
+        
+        <line x1="50" y1="50" x2="70" y2="65" />
+        <ellipse cx="70" cy="65" rx="2" ry="4" transform="rotate(120, 70, 65)" />
+        
+        <line x1="50" y1="50" x2="40" y2="75" />
+        <ellipse cx="40" cy="75" rx="2" ry="4" transform="rotate(-30, 40, 75)" />
+        
+        <line x1="50" y1="50" x2="25" y2="50" />
+        <ellipse cx="25" cy="50" rx="2" ry="4" transform="rotate(90, 25, 50)" />
+      </g>
+    </svg>
   );
 }

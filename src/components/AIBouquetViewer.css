@@ -1,11 +1,138 @@
-/* ─── AI Bouquet Viewer wrapper ──────────────────────────────────── */
+/* ─── AI Bouquet Viewer ──────────────────────────────────────────── */
 
 .ai-bouquet-viewer {
   width: 100%;
   height: 100%;
-  border-radius: 0;
+  border-radius: 1rem;
   overflow: hidden;
   position: relative;
-  background: #fffdf9;
+  background: #faf7f2;
   isolation: isolate;
+}
+
+/* ─── Empty State ────────────────────────────────────────────────── */
+
+.bouquet-empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: #faf7f2;
+}
+
+.bouquet-empty p {
+  font-family: Georgia, serif;
+  font-size: 0.95rem;
+  color: #b09098;
+  text-align: center;
+  line-height: 1.7;
+  margin: 0;
+  font-style: italic;
+}
+
+/* ─── Loading Skeleton ───────────────────────────────────────────── */
+
+.bouquet-skeleton {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: #faf7f2;
+  position: relative;
+}
+
+.skeleton-petals {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-petal {
+  position: absolute;
+  width: 52px;
+  height: 52px;
+  border-radius: 50% 50% 50% 0;
+  background: linear-gradient(135deg, #f0d8e0, #e8c8d8);
+  top: 50%;
+  left: 50%;
+  transform-origin: 0 0;
+  transform: rotate(calc(var(--i) * 60deg)) translate(38px, -26px);
+  animation: skeletonPulse 1.6s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 0.15s);
+  opacity: 0.7;
+}
+
+.skeleton-petal:nth-child(2) { background: linear-gradient(135deg, #e8d8f0, #d8c8e8); }
+.skeleton-petal:nth-child(3) { background: linear-gradient(135deg, #d8e8d8, #c8d8c8); }
+.skeleton-petal:nth-child(4) { background: linear-gradient(135deg, #f0e8d0, #e8d8c0); }
+.skeleton-petal:nth-child(5) { background: linear-gradient(135deg, #f0d8e0, #e8c8d8); }
+.skeleton-petal:nth-child(6) { background: linear-gradient(135deg, #d8d8f0, #c8c8e8); }
+
+@keyframes skeletonPulse {
+  0%, 100% { opacity: 0.5; transform: rotate(calc(var(--i) * 60deg)) translate(38px, -26px) scale(1); }
+  50% { opacity: 0.9; transform: rotate(calc(var(--i) * 60deg)) translate(38px, -26px) scale(1.08); }
+}
+
+.skeleton-stem {
+  width: 6px;
+  height: 60px;
+  background: linear-gradient(to bottom, #c8d8b8, #a8c098);
+  border-radius: 3px;
+  animation: skeletonFade 1.6s ease-in-out infinite;
+}
+
+.skeleton-bow {
+  width: 48px;
+  height: 20px;
+  background: linear-gradient(135deg, #f4c8d4, #e8b0c0);
+  border-radius: 50%;
+  animation: skeletonFade 1.6s ease-in-out infinite 0.3s;
+}
+
+@keyframes skeletonFade {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.9; }
+}
+
+.skeleton-text {
+  font-family: Georgia, serif;
+  font-size: 0.85rem;
+  color: #c0a0a8;
+  font-style: italic;
+  margin: 0.5rem 0 0;
+  animation: skeletonFade 1.6s ease-in-out infinite;
+}
+
+/* ─── Error State ────────────────────────────────────────────────── */
+
+.bouquet-error {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: #faf7f2;
+  padding: 2rem;
+  text-align: center;
+}
+
+.bouquet-error span {
+  font-size: 2.5rem;
+}
+
+.bouquet-error p {
+  font-family: Georgia, serif;
+  font-size: 0.9rem;
+  color: #b09098;
+  line-height: 1.6;
+  margin: 0;
 }

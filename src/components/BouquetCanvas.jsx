@@ -1,180 +1,255 @@
 import React, { useMemo } from 'react';
 import FLOWER_TYPES from '../engine/flowers';
 
-/**
- * BouquetCanvas — Advanced Foliage-based Compositing Engine
- * Enforces the strict 5-layer architecture, dynamic scaling, and sharp SVG silhouetting!
- */
+// Dimensions and Anchor Points
+const W = 500;
+const H = 620;
+const BINDING_PT = { x: 250, y: 420 };
+const APEX_PT = { x: 250, y: 200 };
 
-const W = 800;
-const H = 900;
+// Seeded PRNG for stable layouts
+function seededRng(seed) {
+  let s = seed ^ 0xDEADBEEF;
+  return () => {
+    s = (Math.imul(1664525, s) + 1013904223) | 0;
+    return (s >>> 0) / 0xFFFFFFFF;
+  };
+}
 
-const BOUQUET_SLOTS = [
-  // Slot 1 — Lowest Center (Peony position in reference)
-  { x: 400, y: 360, rotation: 0, scale: 1.15, zIndex: 10 },
-  // Slot 2 — Mid Left (Rose position in reference)
-  { x: 300, y: 320, rotation: -12, scale: 1.0, zIndex: 9 },
-  // Slot 3 — Mid Right (Sunflower position in reference)
-  { x: 500, y: 320, rotation: 12, scale: 1.0, zIndex: 8 },
-  // Slot 4 — Top Center (Lily position in reference)
-  { x: 400, y: 250, rotation: 0, scale: 0.95, zIndex: 7 },
-  // Slot 5 — Upper Right Back
-  { x: 460, y: 250, rotation: 20, scale: 0.85, zIndex: 6 },
-  // Slot 6 — Upper Left Back
-  { x: 340, y: 250, rotation: -20, scale: 0.85, zIndex: 6 },
-  // Slot 7 — High Back Peak
-  { x: 400, y: 200, rotation: 4, scale: 0.8, zIndex: 5 },
-  // Slot 8 — Lower Right Fill
-  { x: 530, y: 360, rotation: 25, scale: 0.85, zIndex: 4 },
-  // Slot 9 — Lower Left Fill
-  { x: 270, y: 360, rotation: -25, scale: 0.85, zIndex: 4 },
-  // Slot 10 — Extreme High Fill
-  { x: 400, y: 160, rotation: -3, scale: 0.75, zIndex: 3 }
-];
+const ROLE_ORDER = {
+  FOLIAGE: 1,
+  LINE: 2,
+  FILLER: 3,
+  FLOATER: 3,
+  FOUNDATION: 4,
+  FOCAL: 5,
+};
+
+function getRoleMetrics(role, rng) {
+  switch (role) {
+    case 'FOLIAGE':
+      return { angle: 200 + rng() * 140, radius: 80 + rng() * 30, scale: 0.9, opacity: 1 };
+    case 'LINE':
+      return { angle: 80 + rng() * 20, radius: 70 + rng() * 30, scale: 0.85, opacity: 1 };
+    case 'FILLER':
+      return { angle: rng() * 360, radius: 40 + rng() * 40, scale: 0.6, opacity: 1 };
+    case 'FLOATER':
+      return { angle: rng() * 360, radius: 50 + rng() * 30, scale: 0.5, opacity: 0.8 };
+    case 'FOUNDATION':
+      return { angle: rng() * 360, radius: 20 + rng() * 30, scale: 0.9, opacity: 1 };
+    case 'FOCAL':
+      return { angle: rng() * 360, radius: rng() * 20, scale: 1.15, opacity: 1 };
+    default:
+      return { angle: rng() * 360, radius: 30 + rng() * 30, scale: 0.8, opacity: 1 };
+  }
+}
+
+function processFlowers(inputFlowers) {
+  let flowers = inputFlowers.map((f, i) => {
+    const typeInfo = FLOWER_TYPES[f.type];
+    return {
+      id: `f_${i}`,
+      type: f.type,
+      role: typeInfo ? typeInfo.role : 'FOUNDATION',
+      image: typeInfo ? typeInfo.image : null,
+    };
+  });
+
+  // Sort by z-index
+  flowers.sort((a, b) => ROLE_ORDER[a.role] - ROLE_ORDER[b.role]);
+
+  const rng = seededRng(flowers.length * 997);
+  const slots = [];
+
+  for (let i = 0; i < flowers.length; i++) {
+    const f = flowers[i];
+    let placed = false;
+    let attempts = 0;
+    let x = 0, y = 0, angle = 0, radius = 0, scale = 1, opacity = 1;
+
+    while (!placed && attempts < 50) {
+      const metrics = getRoleMetrics(f.role, rng);
+      angle = metrics.angle;
+      radius = metrics.radius;
+      scale = metrics.scale;
+      opacity = metrics.opacity;
+
+      const angleRad = (angle * Math.PI) / 180;
+      x = APEX_PT.x + radius * Math.cos(angleRad) + (rng() - 0.5) * 16;
+      y = APEX_PT.y + radius * Math.sin(angleRad) * 0.65 + (rng() - 0.5) * 16;
+
+      // Collision check (20px minimum distance)
+      let collision = false;
+      for (const slot of slots) {
+        const dx = slot.x - x;
+        const dy = slot.y - y;
+        if (Math.sqrt(dx * dx + dy * dy) < 20) {
+          collision = true;
+          break;
+        }
+      }
+
+      if (!collision) placed = true;
+      attempts++;
+    }
+
+    const rotation = (rng() - 0.5) * 30; // ±15° variation
+
+    slots.push({ ...f, x, y, rotation, scale, opacity, i });
+  }
+
+  return slots;
+}
 
 export default function BouquetCanvas({ flowers = [] }) {
-  const count = flowers.length;
+  const slots = useMemo(() => processFlowers(flowers), [flowers]);
+  const hasFlowers = slots.length >= 4;
 
-  const validFlowers = useMemo(() => {
-    return flowers.slice(0, 10).map((f, i) => {
-      return { flower: f, slot: BOUQUET_SLOTS[i], originalIndex: i };
-    }).sort((a, b) => a.slot.zIndex - b.slot.zIndex);
-  }, [flowers]);
-
-  const backFlowers = validFlowers.filter(f => f.slot.zIndex < 10);
-  const heroFlowers = validFlowers.filter(f => f.slot.zIndex >= 10);
-
-  const renderFlower = ({ flower, slot, originalIndex }) => {
-    const typeInfo = FLOWER_TYPES[flower.type];
-    if (!typeInfo) return null;
-
-    // Center standard flower assets
-    const s = 250 * slot.scale; 
-    const ix = slot.x - s / 2;
-    const iy = slot.y - s / 2;
-
+  if (!hasFlowers) {
     return (
-      <g
-        key={`flower-${flower.id}-${originalIndex}-${slot.zIndex}`}
-        transform={`rotate(${slot.rotation}, ${slot.x}, ${slot.y})`}
+      <div
+        style={{
+          width: '100%', height: '100%',
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          background: '#FAF7F2', borderRadius: '1.5rem',
+        }}
       >
-        <image
-          href={typeInfo.image}
-          x={ix} y={iy}
-          width={s} height={s}
-          preserveAspectRatio="xMidYMid meet"
-          mask="url(#softFlowerMask)"
-          style={{
-            transformOrigin: `${slot.x}px ${slot.y}px`,
-            transition: 'all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)'
-          }}
-        />
-      </g>
+        <svg width="100" height="150" viewBox="0 0 100 150">
+          <path d="M30 50 Q50 90 40 140 L60 140 Q50 90 70 50 Z" fill="none" stroke="#d4a4ae" strokeWidth="2" />
+          <ellipse cx="50" cy="50" rx="20" ry="8" fill="none" stroke="#d4a4ae" strokeWidth="2" />
+          <line x1="50" y1="20" x2="50" y2="50" stroke="#a38a90" strokeWidth="2" strokeDasharray="4 2" />
+          <line x1="40" y1="30" x2="45" y2="50" stroke="#a38a90" strokeWidth="2" strokeDasharray="4 2" />
+          <line x1="60" y1="30" x2="55" y2="50" stroke="#a38a90" strokeWidth="2" strokeDasharray="4 2" />
+        </svg>
+        <p style={{ fontFamily: 'Georgia, serif', color: '#a38a90', marginTop: '1rem', fontStyle: 'italic' }}>
+          Select 4+ flowers to build your bouquet
+        </p>
+      </div>
     );
-  };
+  }
 
   return (
-    <div style={{
-      width: '100%',
-      height: '100%',
-      backgroundColor: '#FAF8F5', // Strict cream background canvas
-      borderRadius: '1rem',
-      overflow: 'hidden',
-      position: 'relative',
-    }}>
+    <div
+      style={{
+        width: '100%',
+        height: '100%',
+        background: '#FAF7F2',
+        borderRadius: '1.5rem',
+        overflow: 'hidden',
+        position: 'relative',
+        boxShadow: '0 24px 72px rgba(140, 80, 60, 0.13)',
+      }}
+    >
+      <style>{`
+        @keyframes flowerGrow {
+          from { opacity: 0; transform: scale(0.5) translateY(20px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+      `}</style>
       <svg
         viewBox={`0 0 ${W} ${H}`}
         preserveAspectRatio="xMidYMid meet"
         style={{ width: '100%', height: '100%', display: 'block' }}
       >
         <defs>
-          <filter id="ribbonShadow">
-            <feDropShadow dx="0" dy="2" stdDeviation="2" floodColor="#000000" floodOpacity="0.2" />
-          </filter>
-
-          {/* Organic Radial Mask: Softly fades edges to merge petals beautifully while fading out individual long stems! */}
-          <radialGradient id="flowerFade" cx="0.5" cy="0.45" r="0.45">
-            <stop offset="65%" stopColor="white" />
-            <stop offset="100%" stopColor="black" />
+          <radialGradient id="vignette" cx="50%" cy="50%" r="50%">
+            <stop offset="60%" stopColor="transparent" />
+            <stop offset="100%" stopColor="rgba(0,0,0,0.03)" />
           </radialGradient>
-          <mask id="softFlowerMask" maskContentUnits="objectBoundingBox">
-            <rect x="0" y="0" width="1" height="1" fill="url(#flowerFade)" />
-          </mask>
-          
-          {/* Taper mask forces the foliage base to mimic a hand-held bouquet stem bundle! */}
-          <mask id="stemBaseTaper">
-            <rect x="0" y="0" width="800" height="640" fill="white" />
-            {/* Tapering explicitly from y=640 to y=710, nothing rendered beneath 710px! */}
-            <polygon points="100,640 700,640 420,710 380,710" fill="white" />
-          </mask>
+          <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="8" stdDeviation="6" floodColor="#000" floodOpacity="0.1" />
+          </filter>
         </defs>
 
-        {/* 
-          Layer 2: Foliage Base Background 
-          Vastly scaled down structurally from 800px to 540px width so all tropical elements 
-          become smaller than foreground flowers. Fully masked to destroy the "vase" effect.
-        */}
-        <image 
-          href="/assets/template/foliage_base.png" 
-          x="130" y="150" 
-          width="540" height="600" 
-          preserveAspectRatio="xMidYMid meet" 
-          mask="url(#stemBaseTaper)"
-          style={{ mixBlendMode: 'multiply', transition: 'all 0.5s ease' }}
-          opacity={count === 0 ? 0.3 : 1}
-        />
+        <rect x="0" y="0" width={W} height={H} fill="url(#vignette)" />
 
-        {/* Layer 3: Back Flowers (zIndex 3 through 9) */}
-        {backFlowers.map(renderFlower)}
+        {/* Bare Stems below binding point */}
+        {slots.map((slot, i) => {
+          const offsetX = (i - slots.length / 2) * 2;
+          return (
+            <line
+              key={`bare-stem-${i}`}
+              x1={BINDING_PT.x + offsetX}
+              y1={BINDING_PT.y}
+              x2={BINDING_PT.x + offsetX * 1.5}
+              y2={H + 20}
+              stroke="#5a7a3a"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            />
+          );
+        })}
 
-        {/* Layer 4: Front Ribbon */}
-        {/* Ribbon knot centered strictly at x=400, y=660px 
-            Massive 340px scaling so 110px loops are mathematically guaranteed */}
-        {count > 0 && (
-          <image 
-            href="/assets/template/front_ribbon.png" 
-            x={400 - 170} 
-            y={660 - 90} 
-            width={340} 
-            height={260} 
-            preserveAspectRatio="xMidYMid meet" 
-            filter="url(#ribbonShadow)"
-            style={{ mixBlendMode: 'multiply', transition: 'all 0.5s ease' }}
-          />
-        )}
+        {/* Step 1: Draw all stems first so they are behind all flowers */}
+        <g filter="url(#shadow)">
+          {slots.map((slot) => {
+            if (!slot.image) return null;
+            const size = 260 * slot.scale;
+            
+            const dx = BINDING_PT.x - slot.x;
+            const dy = BINDING_PT.y - slot.y;
+            const cx = slot.x + dx * 0.2;
+            const cy = slot.y + dy * 0.5;
 
-        {/* Layer 5: Hero Flower (zIndex 10) */}
-        {heroFlowers.map(renderFlower)}
+            const delay = `${(slot.i * 0.05).toFixed(2)}s`;
 
+            return (
+              <g key={`stem-${slot.id}`} style={{ animation: `flowerGrow 0.6s cubic-bezier(0.22,1,0.36,1) ${delay} both` }}>
+                <path
+                  d={`M ${slot.x} ${slot.y} Q ${cx} ${cy} ${BINDING_PT.x} ${BINDING_PT.y}`}
+                  fill="none"
+                  stroke="#5a7a3a"
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
+                />
+              </g>
+            );
+          })}
+        </g>
+
+        {/* Step 2: Draw all flower heads on top of the stems */}
+        <g filter="url(#shadow)">
+          {slots.map((slot) => {
+            if (!slot.image) return null;
+            const size = 260 * slot.scale;
+
+            // Calculate rotation so the flower's bottom points directly at the binding point
+            const dx = BINDING_PT.x - slot.x;
+            const dy = BINDING_PT.y - slot.y;
+            const angleToBinding = Math.atan2(dy, dx) * (180 / Math.PI);
+            
+            // The default PNG stem points down (90 degrees). 
+            // We rotate by (angleToBinding - 90) to align the stem, plus the random jitter rotation.
+            const structuralRotation = angleToBinding - 90;
+            const totalRotation = structuralRotation + slot.rotation;
+
+            const delay = `${(slot.i * 0.05).toFixed(2)}s`;
+
+            return (
+              <g key={`flower-${slot.id}`} style={{ animation: `flowerGrow 0.6s cubic-bezier(0.22,1,0.36,1) ${delay} both` }}>
+                <g transform={`translate(${slot.x - size / 2}, ${slot.y - size / 2}) rotate(${totalRotation}, ${size / 2}, ${size / 2})`} opacity={slot.opacity}>
+                  <image 
+                    href={slot.image} 
+                    width={size} 
+                    height={size} 
+                    style={{ mixBlendMode: 'darken' }} 
+                  />
+                </g>
+              </g>
+            );
+          })}
+        </g>
+
+        {/* Dusty Rose Silk Bow at Binding Point */}
+        <g transform={`translate(${BINDING_PT.x}, ${BINDING_PT.y})`}>
+          <path d="M 0 0 Q -30 -20 -40 0 Q -30 20 0 0" fill="#d4a4ae" opacity="0.9" />
+          <path d="M 0 0 Q 30 -20 40 0 Q 30 20 0 0" fill="#d4a4ae" opacity="0.9" />
+          <path d="M -5 5 Q -20 30 -30 60 Q -10 40 0 10 Z" fill="#b9828d" opacity="0.85" />
+          <path d="M 5 5 Q 20 30 30 60 Q 10 40 0 10 Z" fill="#b9828d" opacity="0.85" />
+          <circle cx="0" cy="0" r="6" fill="#a36e79" />
+        </g>
       </svg>
-
-      {/* Empty State Overlay */}
-      {count === 0 && (
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '1rem',
-          pointerEvents: 'none'
-        }}>
-          <p style={{
-            fontFamily: 'Georgia, serif',
-            fontSize: '1rem',
-            color: '#a38a90',
-            textAlign: 'center',
-            lineHeight: 1.65,
-            margin: 0,
-            background: 'rgba(253, 251, 250, 0.85)',
-            padding: '1rem 2rem',
-            borderRadius: '2rem'
-          }}>
-            Select flowers to build your arrangement
-          </p>
-        </div>
-      )}
     </div>
   );
 }

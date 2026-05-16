@@ -1,160 +1,132 @@
-/* ─── Flower Picker ─────────────────────────────────────────────── */
-
 .flower-picker {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: var(--space-md);
+  margin-top: var(--space-sm);
 }
 
 .picker-label {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--charcoal-light, #6b5b5e);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.picker-count {
-  background: var(--blush-light, #fde8ee);
-  color: var(--rose-deep, #c46070);
-  border-radius: 99px;
-  padding: 0.15rem 0.55rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-}
-
-/* Grid — 2 columns scrollable */
-.picker-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.65rem;
-  max-height: 520px;
-  overflow-y: auto;
-  padding-right: 0.25rem;
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  color: var(--charcoal);
+  border-bottom: 2px solid var(--cream-dark);
   padding-bottom: 0.5rem;
 }
 
-.picker-grid::-webkit-scrollbar {
-  width: 4px;
-}
-.picker-grid::-webkit-scrollbar-track { background: transparent; }
-.picker-grid::-webkit-scrollbar-thumb {
-  background: var(--blush, #f2c8d0);
-  border-radius: 4px;
+.picker-count {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--charcoal-faint);
+  background: var(--cream);
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-xl);
+  font-weight: 500;
 }
 
-/* Each card */
+.picker-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-sm);
+  padding-right: 0.5rem;
+}
+
 .picker-card {
-  background: #fff;
-  border: 1.5px dashed #e8d0d4;
-  border-radius: 14px;
-  padding: 0.65rem 0.5rem 0.55rem;
-  cursor: pointer;
-  text-align: center;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.45rem;
-  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
-  position: relative;
-  outline: none;
+  background: white;
+  border: 1.5px solid var(--cream-dark);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .picker-card:hover {
-  border-color: var(--rose-deep, #c46070);
-  box-shadow: 0 4px 16px rgba(196, 96, 112, 0.12);
-  background: #fffbfc;
+  border-color: var(--blush);
+  box-shadow: var(--shadow-sm);
 }
 
 .picker-card.selected {
-  border: 2px solid var(--rose-deep, #c46070);
-  background: linear-gradient(135deg, #fff6f8 0%, #fff 100%);
-  box-shadow: 0 4px 18px rgba(196, 96, 112, 0.18);
+  border-color: var(--rose-blush);
+  box-shadow: 0 4px 12px rgba(196, 96, 112, 0.15);
 }
 
-/* Image container */
 .picker-img-wrap {
+  width: 100%;
+  aspect-ratio: 1;
+  background: var(--cream);
   position: relative;
-  width: 80px;
-  height: 80px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
-  background: #ffffff;
-  overflow: visible;
+  padding: 1rem;
 }
 
-.picker-img {
-  width: 74px;
-  height: 74px;
-  object-fit: contain;
-  border-radius: 8px;
-  background: #ffffff;
+.picker-svg-container {
+  width: 80%;
+  height: 80%;
 }
 
-/* Count badge */
-.picker-badge {
+.picker-badge-count {
   position: absolute;
-  top: -7px;
-  right: -7px;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: var(--rose-deep);
+  color: white;
   width: 22px;
   height: 22px;
-  background: var(--rose-deep, #c46070);
-  color: #fff;
   border-radius: 50%;
-  font-size: 0.72rem;
-  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #fff;
-  box-shadow: 0 2px 6px rgba(196, 96, 112, 0.3);
+  font-size: 0.75rem;
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
 }
 
-/* Text */
+.picker-role-badge {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 0.5rem;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-md);
+  text-transform: uppercase;
+}
+
 .picker-info {
+  padding: 0.75rem;
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
-  width: 100%;
+  gap: 0.2rem;
+  background: white;
 }
 
 .picker-name {
-  font-size: 0.78rem;
   font-weight: 600;
-  color: var(--charcoal, #3a2e30);
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 0.85rem;
+  color: var(--charcoal);
 }
 
 .picker-poetic {
-  font-size: 0.68rem;
-  color: var(--charcoal-faint, #a89498);
-  font-style: italic;
+  font-size: 0.75rem;
+  color: var(--charcoal-faint);
   line-height: 1.3;
-  overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 480px) {
   .picker-grid {
-    grid-template-columns: repeat(3, 1fr);
-    max-height: 280px;
-  }
-  .picker-img-wrap {
-    width: 60px;
-    height: 60px;
-  }
-  .picker-img {
-    width: 56px;
-    height: 56px;
+    grid-template-columns: 1fr;
   }
 }
