@@ -1,254 +1,207 @@
 import React, { useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import FLOWER_TYPES from '../engine/flowers';
 
-// Dimensions and Anchor Points
+/**
+ * BouquetCanvas — instant, offline bouquet compositor.
+ *
+ * Layout algorithm:
+ * - All flowers fan out from a single grip/tie point at the bottom-center
+ * - Each flower image is placed so its bottom-center sits at the grip point
+ * - The group is then rotated around the grip point by its fan angle
+ * - Center flower is upright (0°), outer flowers lean left/right
+ * - A ribbon bow is drawn on top of the grip point
+ * - Solid cream background — no transparency, no checkerboard
+ */
+
 const W = 500;
-const H = 620;
-const BINDING_PT = { x: 250, y: 420 };
-const APEX_PT = { x: 250, y: 200 };
+const H = 580;
+const GRIP_X = W / 2;
+const GRIP_Y = H * 0.78;
 
-// Seeded PRNG for stable layouts
-function seededRng(seed) {
-  let s = seed ^ 0xDEADBEEF;
-  return () => {
-    s = (Math.imul(1664525, s) + 1013904223) | 0;
-    return (s >>> 0) / 0xFFFFFFFF;
-  };
-}
+function getFanAngles(count) {
+  if (count === 0) return [];
+  if (count === 1) return [0];
 
-const ROLE_ORDER = {
-  FOLIAGE: 1,
-  LINE: 2,
-  FILLER: 3,
-  FLOATER: 3,
-  FOUNDATION: 4,
-  FOCAL: 5,
-};
+  // Spread grows with count, max 130°
+  const totalArc = Math.min(22 + (count - 1) * 14, 130);
 
-function getRoleMetrics(role, rng) {
-  switch (role) {
-    case 'FOLIAGE':
-      return { angle: 200 + rng() * 140, radius: 80 + rng() * 30, scale: 0.9, opacity: 1 };
-    case 'LINE':
-      return { angle: 80 + rng() * 20, radius: 70 + rng() * 30, scale: 0.85, opacity: 1 };
-    case 'FILLER':
-      return { angle: rng() * 360, radius: 40 + rng() * 40, scale: 0.6, opacity: 1 };
-    case 'FLOATER':
-      return { angle: rng() * 360, radius: 50 + rng() * 30, scale: 0.5, opacity: 0.8 };
-    case 'FOUNDATION':
-      return { angle: rng() * 360, radius: 20 + rng() * 30, scale: 0.9, opacity: 1 };
-    case 'FOCAL':
-      return { angle: rng() * 360, radius: rng() * 20, scale: 1.15, opacity: 1 };
-    default:
-      return { angle: rng() * 360, radius: 30 + rng() * 30, scale: 0.8, opacity: 1 };
-  }
-}
-
-function processFlowers(inputFlowers) {
-  let flowers = inputFlowers.map((f, i) => {
-    const typeInfo = FLOWER_TYPES[f.type];
-    return {
-      id: `f_${i}`,
-      type: f.type,
-      role: typeInfo ? typeInfo.role : 'FOUNDATION',
-      image: typeInfo ? typeInfo.image : null,
-    };
+  return Array.from({ length: count }, (_, i) => {
+    const t = (i / (count - 1)) - 0.5; // -0.5 … +0.5
+    return t * totalArc;
   });
+}
 
-  // Sort by z-index
-  flowers.sort((a, b) => ROLE_ORDER[a.role] - ROLE_ORDER[b.role]);
+function getFlowerSize(count) {
+  // Single flower fills nicely; shrink as more are added
+  const base = Math.min(W * 0.68, H * 0.72);
+  if (count <= 1) return base;
+  return Math.max(base * 0.48, base * (1 - (count - 1) * 0.048));
+}
 
-  const rng = seededRng(flowers.length * 997);
-  const slots = [];
+function getRibbonColors(flowers) {
+  const c = { pink: 0, warm: 0, blue: 0, white: 0 };
+  flowers.forEach(f => {
+    const col = FLOWER_TYPES[f.type]?.dominantColor ?? 'white';
+    if (col === 'pink' || col === 'red') c.pink++;
+    else if (col === 'warm') c.warm++;
+    else if (col === 'blue') c.blue++;
+    else c.white++;
+  });
+  const max = Math.max(...Object.values(c));
+  if (c.pink === max) return { fill: '#f4b8c8', stroke: '#d4889a', shine: '#fde8f0' };
+  if (c.warm === max) return { fill: '#f0d890', stroke: '#c8a840', shine: '#fdf4d0' };
+  if (c.blue === max) return { fill: '#c8b8e8', stroke: '#9878c8', shine: '#ece8f8' };
+  return { fill: '#f0ece4', stroke: '#c0b0a0', shine: '#faf8f4' };
+}
 
-  for (let i = 0; i < flowers.length; i++) {
-    const f = flowers[i];
-    let placed = false;
-    let attempts = 0;
-    let x = 0, y = 0, angle = 0, radius = 0, scale = 1, opacity = 1;
-
-    while (!placed && attempts < 50) {
-      const metrics = getRoleMetrics(f.role, rng);
-      angle = metrics.angle;
-      radius = metrics.radius;
-      scale = metrics.scale;
-      opacity = metrics.opacity;
-
-      const angleRad = (angle * Math.PI) / 180;
-      x = APEX_PT.x + radius * Math.cos(angleRad) + (rng() - 0.5) * 16;
-      y = APEX_PT.y + radius * Math.sin(angleRad) * 0.65 + (rng() - 0.5) * 16;
-
-      // Collision check (20px minimum distance)
-      let collision = false;
-      for (const slot of slots) {
-        const dx = slot.x - x;
-        const dy = slot.y - y;
-        if (Math.sqrt(dx * dx + dy * dy) < 20) {
-          collision = true;
-          break;
-        }
-      }
-
-      if (!collision) placed = true;
-      attempts++;
-    }
-
-    const rotation = (rng() - 0.5) * 30; // ±15° variation
-
-    slots.push({ ...f, x, y, rotation, scale, opacity, i });
-  }
-
-  return slots;
+function Ribbon({ x, y, colors }) {
+  const { fill, stroke, shine } = colors;
+  return (
+    <g transform={`translate(${x},${y})`}>
+      {/* Left loop */}
+      <path d="M0,0 C-8,-12 -52,-26 -54,0 C-54,18 -28,22 0,0Z"
+        fill={fill} stroke={stroke} strokeWidth="1.3" opacity="0.95" />
+      <path d="M0,0 C-8,-12 -52,-26 -54,0 C-54,18 -28,22 0,0Z"
+        fill={shine} stroke="none" opacity="0.3" />
+      {/* Right loop */}
+      <path d="M0,0 C8,-12 52,-26 54,0 C54,18 28,22 0,0Z"
+        fill={fill} stroke={stroke} strokeWidth="1.3" opacity="0.95" />
+      <path d="M0,0 C8,-12 52,-26 54,0 C54,18 28,22 0,0Z"
+        fill={shine} stroke="none" opacity="0.3" />
+      {/* Left tail */}
+      <path d="M-5,5 C-18,28 -34,60 -26,84 C-16,60 -6,28 0,8Z"
+        fill={fill} stroke={stroke} strokeWidth="1" opacity="0.88" />
+      {/* Right tail */}
+      <path d="M5,5 C18,28 34,60 26,84 C16,60 6,28 0,8Z"
+        fill={fill} stroke={stroke} strokeWidth="1" opacity="0.88" />
+      {/* Knot */}
+      <ellipse cx="0" cy="3" rx="10" ry="8"
+        fill={fill} stroke={stroke} strokeWidth="1.4" />
+      <ellipse cx="-2" cy="1" rx="4" ry="3"
+        fill={shine} stroke="none" opacity="0.6" />
+    </g>
+  );
 }
 
 export default function BouquetCanvas({ flowers = [] }) {
-  const slots = useMemo(() => processFlowers(flowers), [flowers]);
-  const hasFlowers = slots.length >= 4;
+  const count = flowers.length;
 
-  if (!hasFlowers) {
-    return (
-      <div
-        style={{
-          width: '100%', height: '100%',
-          display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center',
-          background: '#FAF7F2', borderRadius: '1.5rem',
-        }}
-      >
-        <svg width="100" height="150" viewBox="0 0 100 150">
-          <path d="M30 50 Q50 90 40 140 L60 140 Q50 90 70 50 Z" fill="none" stroke="#d4a4ae" strokeWidth="2" />
-          <ellipse cx="50" cy="50" rx="20" ry="8" fill="none" stroke="#d4a4ae" strokeWidth="2" />
-          <line x1="50" y1="20" x2="50" y2="50" stroke="#a38a90" strokeWidth="2" strokeDasharray="4 2" />
-          <line x1="40" y1="30" x2="45" y2="50" stroke="#a38a90" strokeWidth="2" strokeDasharray="4 2" />
-          <line x1="60" y1="30" x2="55" y2="50" stroke="#a38a90" strokeWidth="2" strokeDasharray="4 2" />
-        </svg>
-        <p style={{ fontFamily: 'Georgia, serif', color: '#a38a90', marginTop: '1rem', fontStyle: 'italic' }}>
-          Select 4+ flowers to build your bouquet
-        </p>
-      </div>
-    );
-  }
+  const fanAngles = useMemo(() => getFanAngles(count), [count]);
+  const flowerSize = useMemo(() => getFlowerSize(count), [count]);
+  const ribbonColors = useMemo(() => getRibbonColors(flowers), [flowers]);
+
+  // Z-order: center flowers render last (on top), outer flowers behind
+  const renderOrder = useMemo(() => {
+    return flowers
+      .map((f, i) => {
+        const distFromCenter = Math.abs(i - (count - 1) / 2);
+        return { f, i, z: count - distFromCenter, angle: fanAngles[i] ?? 0 };
+      })
+      .sort((a, b) => a.z - b.z); // paint back-to-front
+  }, [flowers, fanAngles, count]);
+
+  if (count === 0) return null;
 
   return (
-    <div
-      style={{
-        width: '100%',
-        height: '100%',
-        background: '#FAF7F2',
-        borderRadius: '1.5rem',
-        overflow: 'hidden',
-        position: 'relative',
-        boxShadow: '0 24px 72px rgba(140, 80, 60, 0.13)',
-      }}
-    >
-      <style>{`
-        @keyframes flowerGrow {
-          from { opacity: 0; transform: scale(0.5) translateY(20px); }
-          to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-      `}</style>
+    <div style={{
+      width: '100%',
+      height: '100%',
+      background: '#fffdf9',
+      borderRadius: '1rem',
+      overflow: 'hidden',
+      position: 'relative',
+    }}>
       <svg
         viewBox={`0 0 ${W} ${H}`}
         preserveAspectRatio="xMidYMid meet"
         style={{ width: '100%', height: '100%', display: 'block' }}
       >
-        <defs>
-          <radialGradient id="vignette" cx="50%" cy="50%" r="50%">
-            <stop offset="60%" stopColor="transparent" />
-            <stop offset="100%" stopColor="rgba(0,0,0,0.03)" />
-          </radialGradient>
-          <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="0" dy="8" stdDeviation="6" floodColor="#000" floodOpacity="0.1" />
-          </filter>
-        </defs>
+        {/* Paper background */}
+        <rect width={W} height={H} fill="#fffdf9" />
 
-        <rect x="0" y="0" width={W} height={H} fill="url(#vignette)" />
-
-        {/* Bare Stems below binding point */}
-        {slots.map((slot, i) => {
-          const offsetX = (i - slots.length / 2) * 2;
+        {/* Subtle paper texture dots */}
+        {[...Array(18)].map((_, i) => {
+          const px = ((i * 137.5) % 1) * W;
+          const py = ((i * 97.3) % 1) * H * 0.85;
           return (
-            <line
-              key={`bare-stem-${i}`}
-              x1={BINDING_PT.x + offsetX}
-              y1={BINDING_PT.y}
-              x2={BINDING_PT.x + offsetX * 1.5}
-              y2={H + 20}
-              stroke="#5a7a3a"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-            />
+            <circle key={i} cx={px} cy={py} r={0.8 + (i % 3) * 0.6}
+              fill="#e8d8d0" opacity={0.12 + (i % 4) * 0.04} />
           );
         })}
 
-        {/* Step 1: Draw all stems first so they are behind all flowers */}
-        <g filter="url(#shadow)">
-          {slots.map((slot) => {
-            if (!slot.image) return null;
-            const size = 260 * slot.scale;
-            
-            const dx = BINDING_PT.x - slot.x;
-            const dy = BINDING_PT.y - slot.y;
-            const cx = slot.x + dx * 0.2;
-            const cy = slot.y + dy * 0.5;
-
-            const delay = `${(slot.i * 0.05).toFixed(2)}s`;
-
+        {/* Stems — drawn first, behind everything */}
+        <g>
+          {renderOrder.map(({ i, angle }) => {
+            const rad = (angle * Math.PI) / 180;
+            const stemLen = flowerSize * 0.68;
+            // Stem tip is at the flower head center (top of stem)
+            const tipX = GRIP_X - Math.sin(rad) * stemLen;
+            const tipY = GRIP_Y - Math.cos(rad) * stemLen;
+            // Slight curve control point
+            const cpX = GRIP_X + (tipX - GRIP_X) * 0.4 + Math.sin(rad) * 8;
+            const cpY = GRIP_Y + (tipY - GRIP_Y) * 0.5;
             return (
-              <g key={`stem-${slot.id}`} style={{ animation: `flowerGrow 0.6s cubic-bezier(0.22,1,0.36,1) ${delay} both` }}>
-                <path
-                  d={`M ${slot.x} ${slot.y} Q ${cx} ${cy} ${BINDING_PT.x} ${BINDING_PT.y}`}
-                  fill="none"
-                  stroke="#5a7a3a"
-                  strokeWidth="3.5"
-                  strokeLinecap="round"
+              <path
+                key={`stem-${i}`}
+                d={`M ${GRIP_X} ${GRIP_Y} Q ${cpX} ${cpY} ${tipX} ${tipY}`}
+                fill="none"
+                stroke="#6a8a52"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                opacity="0.7"
+              />
+            );
+          })}
+          {/* Stem bundle below grip */}
+          {[...Array(Math.min(count + 1, 7))].map((_, i) => {
+            const ox = (i - Math.min(count, 6) / 2) * 3;
+            return (
+              <line key={`bundle-${i}`}
+                x1={GRIP_X + ox} y1={GRIP_Y + 2}
+                x2={GRIP_X + ox * 1.3} y2={H + 10}
+                stroke="#6a8a52" strokeWidth="2.2"
+                strokeLinecap="round" opacity="0.65"
+              />
+            );
+          })}
+        </g>
+
+        {/* Flower images — each rotated around grip point */}
+        {renderOrder.map(({ f, i, angle }) => {
+          const typeInfo = FLOWER_TYPES[f.type];
+          if (!typeInfo) return null;
+
+          // Image placed so bottom-center = grip point, then rotated
+          const ix = GRIP_X - flowerSize / 2;
+          const iy = GRIP_Y - flowerSize;
+
+          return (
+            <AnimatePresence key={`flower-${f.type}-${i}`}>
+              <motion.g
+                transform={`rotate(${angle}, ${GRIP_X}, ${GRIP_Y})`}
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.3 }}
+                transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1], delay: i * 0.05 }}
+                style={{ transformOrigin: `${GRIP_X}px ${GRIP_Y}px` }}
+              >
+                {/* White backing kills any PNG transparency */}
+                <rect x={ix} y={iy} width={flowerSize} height={flowerSize}
+                  fill="#fffdf9" rx="6" />
+                <image
+                  href={typeInfo.image}
+                  x={ix} y={iy}
+                  width={flowerSize} height={flowerSize}
+                  preserveAspectRatio="xMidYMid meet"
                 />
-              </g>
-            );
-          })}
-        </g>
+              </motion.g>
+            </AnimatePresence>
+          );
+        })}
 
-        {/* Step 2: Draw all flower heads on top of the stems */}
-        <g filter="url(#shadow)">
-          {slots.map((slot) => {
-            if (!slot.image) return null;
-            const size = 260 * slot.scale;
-
-            // Calculate rotation so the flower's bottom points directly at the binding point
-            const dx = BINDING_PT.x - slot.x;
-            const dy = BINDING_PT.y - slot.y;
-            const angleToBinding = Math.atan2(dy, dx) * (180 / Math.PI);
-            
-            // The default PNG stem points down (90 degrees). 
-            // We rotate by (angleToBinding - 90) to align the stem, plus the random jitter rotation.
-            const structuralRotation = angleToBinding - 90;
-            const totalRotation = structuralRotation + slot.rotation;
-
-            const delay = `${(slot.i * 0.05).toFixed(2)}s`;
-
-            return (
-              <g key={`flower-${slot.id}`} style={{ animation: `flowerGrow 0.6s cubic-bezier(0.22,1,0.36,1) ${delay} both` }}>
-                <g transform={`translate(${slot.x - size / 2}, ${slot.y - size / 2}) rotate(${totalRotation}, ${size / 2}, ${size / 2})`} opacity={slot.opacity}>
-                  <image 
-                    href={slot.image} 
-                    width={size} 
-                    height={size} 
-                    style={{ mixBlendMode: 'darken' }} 
-                  />
-                </g>
-              </g>
-            );
-          })}
-        </g>
-
-        {/* Dusty Rose Silk Bow at Binding Point */}
-        <g transform={`translate(${BINDING_PT.x}, ${BINDING_PT.y})`}>
-          <path d="M 0 0 Q -30 -20 -40 0 Q -30 20 0 0" fill="#d4a4ae" opacity="0.9" />
-          <path d="M 0 0 Q 30 -20 40 0 Q 30 20 0 0" fill="#d4a4ae" opacity="0.9" />
-          <path d="M -5 5 Q -20 30 -30 60 Q -10 40 0 10 Z" fill="#b9828d" opacity="0.85" />
-          <path d="M 5 5 Q 20 30 30 60 Q 10 40 0 10 Z" fill="#b9828d" opacity="0.85" />
-          <circle cx="0" cy="0" r="6" fill="#a36e79" />
-        </g>
+        {/* Ribbon bow — always on top */}
+        <Ribbon x={GRIP_X} y={GRIP_Y} colors={ribbonColors} />
       </svg>
     </div>
   );
