@@ -1,16 +1,72 @@
-# React + Vite
+# 🌸 Dev's Bouquet
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A digital bouquet builder where you can compose beautiful, personalized flower arrangements and send them to the people you care about.
 
-Currently, two official plugins are available:
+## What It Does
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Build a bouquet** — Pick from a curated catalog of flowers. As you select them, a stunning bouquet is composed in real time on the right panel
+- **Personalize it** — Add a recipient name, a heartfelt message, and choose an occasion
+- **Send it** — Share your bouquet with a unique link
+- **The Garden** — Browse public bouquets created by others
+- **Dashboard** — View and manage all the bouquets you've created
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **React + Vite** — Fast, modern frontend
+- **Firebase** — Authentication and Firestore database
+- **Framer Motion** — Smooth animations and transitions
+- **React Router** — Client-side routing
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 1. Clone the repo
+
+```bash
+git clone https://github.com/devashmit/Devs-bouquet.git
+cd Devs-bouquet
+```
+
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+### 3. Set up environment variables
+
+Copy `.env.example` to `.env` and fill in your Firebase credentials:
+
+```bash
+cp .env.example .env
+```
+
+### 4. Run the dev server
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:5173](http://localhost:5173) in your browser.
+
+## Firebase Setup
+
+1. Create a project at [Firebase Console](https://console.firebase.google.com)
+2. Enable **Authentication** (Email/Password + Google)
+3. Enable **Firestore Database**
+4. Copy your config values into `.env`
+
+## Project Structure
+
+```
+src/
+├── components/       # Reusable UI components
+├── pages/            # Route-level page components
+├── engine/           # Bouquet composition engine
+├── firebase/         # Firebase auth & database helpers
+├── contexts/         # React context providers
+└── services/         # External service integrations
+```
+
+## License
+
+MIT
