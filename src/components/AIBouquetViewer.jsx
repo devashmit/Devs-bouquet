@@ -119,15 +119,17 @@ export default function AIBouquetViewer({ flowers = [] }) {
       setError(false);
 
       try {
-        const seed = flowers.map(f => f.type).join('-').length * 137 + flowers.length * 31;
+        const seed = flowers.map(f => f.type).join('').split('').reduce((a, c) => a + c.charCodeAt(0), 0) + flowers.length * 31;
         const encodedPrompt = encodeURIComponent(prompt);
-        const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=768&height=768&nologo=true&seed=${seed}&model=flux`;
+        // Use turbo model, smaller size for faster generation
+        const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=512&height=512&nologo=true&seed=${seed}&model=turbo&nofeed=true`;
 
-        // Pre-load the image before showing it
+        // Pre-load with a 60s timeout
         await new Promise((resolve, reject) => {
           const img = new Image();
-          img.onload = resolve;
-          img.onerror = reject;
+          const timer = setTimeout(() => reject(new Error('timeout')), 60000);
+          img.onload = () => { clearTimeout(timer); resolve(); };
+          img.onerror = () => { clearTimeout(timer); reject(new Error('load error')); };
           img.src = url;
         });
 
@@ -211,14 +213,14 @@ export default function AIBouquetViewer({ flowers = [] }) {
                   currentPromptRef.current = '';
                   setError(false);
                   setLoading(true);
-                  // re-trigger by resetting
                   const prompt = buildPrompt(flowers);
-                  const seed = Date.now();
+                  const seed = Date.now() % 999999;
                   const encodedPrompt = encodeURIComponent(prompt);
-                  const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=768&height=768&nologo=true&seed=${seed}&model=flux`;
+                  const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=512&height=512&nologo=true&seed=${seed}&model=turbo&nofeed=true`;
                   const img = new Image();
-                  img.onload = () => { setImageUrl(url); setLoading(false); };
-                  img.onerror = () => { setError(true); setLoading(false); };
+                  const timer = setTimeout(() => { setError(true); setLoading(false); }, 60000);
+                  img.onload = () => { clearTimeout(timer); setImageUrl(url); setLoading(false); };
+                  img.onerror = () => { clearTimeout(timer); setError(true); setLoading(false); };
                   img.src = url;
                 }}
                 style={{

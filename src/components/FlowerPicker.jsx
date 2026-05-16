@@ -25,31 +25,6 @@ export default function FlowerPicker({ onAddFlower, selectedFlowers = [] }) {
         {CATALOG.map((flower) => {
           const isSelected = selectedIds.includes(flower.id);
           const count = selectedIds.filter(id => id === flower.id).length;
-          
-          // Role badge color mapping
-          let badgeColor = 'var(--charcoal)';
-          let badgeBg = 'var(--cream-dark)';
-          if (flower.role === 'FOCAL') {
-            badgeColor = 'var(--rose-deep)';
-            badgeBg = 'var(--rose-tint)';
-          } else if (flower.role === 'FOUNDATION') {
-            badgeColor = '#c27b4e';
-            badgeBg = '#fdece3';
-          } else if (flower.role === 'FILLER') {
-            badgeColor = '#6c7a89';
-            badgeBg = '#e8ecf1';
-          } else if (flower.role === 'LINE') {
-            badgeColor = '#6d5a88';
-            badgeBg = '#e9e3f4';
-          } else if (flower.role === 'FLOATER') {
-            badgeColor = '#4a90e2';
-            badgeBg = '#e1f0ff';
-          } else if (flower.role === 'FOLIAGE') {
-            badgeColor = '#3d5c2a';
-            badgeBg = '#eaf2e6';
-          }
-
-          const imageUrl = flower.image;
 
           return (
             <motion.button
@@ -62,15 +37,14 @@ export default function FlowerPicker({ onAddFlower, selectedFlowers = [] }) {
               title={flower.name}
             >
               <div className="picker-img-wrap">
-                <img 
-                  src={imageUrl} 
-                  alt={flower.name} 
-                  className="picker-img" 
-                  style={{ width: '80%', height: '80%', objectFit: 'contain', mixBlendMode: 'darken' }} 
+                <img
+                  src={flower.image}
+                  alt={flower.name}
+                  className="picker-img"
                 />
                 {isSelected && (
                   <motion.div
-                    className="picker-badge-count"
+                    className="picker-badge"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: 'spring', stiffness: 500, damping: 25 }}
@@ -78,12 +52,6 @@ export default function FlowerPicker({ onAddFlower, selectedFlowers = [] }) {
                     {count}
                   </motion.div>
                 )}
-                <div 
-                  className="picker-role-badge" 
-                  style={{ color: badgeColor, backgroundColor: badgeBg }}
-                >
-                  {flower.role}
-                </div>
               </div>
               <div className="picker-info">
                 <span className="picker-name">{flower.name}</span>
