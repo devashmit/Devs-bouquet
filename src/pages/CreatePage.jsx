@@ -203,8 +203,7 @@ export default function CreatePage() {
         <div className="create-panel create-preview">
           <div className="preview-label">
             <span>Live Preview</span>
-            {flowers.length < 1 && <span className="subtext" style={{ color: 'var(--rose-deep)' }}>Pick a flower to generate your bouquet...</span>}
-            {flowers.length > 0 && <span className="subtext" style={{ color: '#a0b890', fontSize: '0.78rem' }}>✨ AI generating…</span>}
+            {flowers.length < 1 && <span className="subtext" style={{ color: 'var(--rose-deep)' }}>Pick a flower to begin...</span>}
           </div>
           <div className="preview-canvas" ref={bouquetRef}>
             <AIBouquetViewer flowers={flowers} />
