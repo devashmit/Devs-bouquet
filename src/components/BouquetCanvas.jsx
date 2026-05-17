@@ -18,12 +18,13 @@ import FLOWER_TYPES from '../engine/flowers';
 const W = 500;
 const H = 600;
 const GRIP_X = W / 2;
-const GRIP_Y = H * 0.80;
+const GRIP_Y = H * 0.72; // higher up so bouquet fills canvas better
 
 function getFanAngles(count) {
   if (count === 0) return [];
   if (count === 1) return [0];
-  const arc = Math.min(15 + (count - 1) * 12, 110);
+  // Wider spread so flower heads clearly separate
+  const arc = Math.min(28 + (count - 1) * 16, 140);
   return Array.from({ length: count }, (_, i) => {
     const t = (i / (count - 1)) - 0.5;
     return t * arc;
@@ -31,12 +32,13 @@ function getFanAngles(count) {
 }
 
 function getSize(count) {
-  if (count === 1) return 340;
-  if (count === 2) return 280;
-  if (count === 3) return 240;
-  if (count === 4) return 210;
-  if (count === 5) return 190;
-  return Math.max(160, 190 - (count - 5) * 8);
+  if (count === 1) return 360;
+  if (count === 2) return 300;
+  if (count === 3) return 260;
+  if (count === 4) return 230;
+  if (count === 5) return 205;
+  if (count === 6) return 185;
+  return Math.max(155, 185 - (count - 6) * 7);
 }
 
 function getRibbonColor(flowers) {
@@ -90,31 +92,31 @@ export default function BouquetCanvas({ flowers = [] }) {
         {/* Stems — behind flowers */}
         {order.map(({ i, angle }) => {
           const rad = (angle * Math.PI) / 180;
-          // Stem end = where the flower base sits (bottom of image)
-          // Image bottom-center is at grip, so stem goes from grip upward
-          const stemTop = size * 0.55; // how far up the stem goes
+          // Stem runs from grip up to ~55% of image height
+          const stemTop = size * 0.52;
           const ex = GRIP_X - Math.sin(rad) * stemTop;
           const ey = GRIP_Y - Math.cos(rad) * stemTop;
-          const cpx = GRIP_X - Math.sin(rad) * stemTop * 0.45 + Math.cos(rad) * 5 * Math.sign(angle);
-          const cpy = GRIP_Y - Math.cos(rad) * stemTop * 0.45;
+          // Gentle curve outward
+          const cpx = GRIP_X - Math.sin(rad) * stemTop * 0.5 + Math.cos(rad) * 10 * (angle / 60);
+          const cpy = GRIP_Y - Math.cos(rad) * stemTop * 0.5 + Math.sin(rad) * 5;
           return (
             <path key={`s${i}`}
               d={`M${GRIP_X},${GRIP_Y} Q${cpx},${cpy} ${ex},${ey}`}
-              fill="none" stroke="#6a8a52" strokeWidth="2.6"
-              strokeLinecap="round" opacity="0.7"
+              fill="none" stroke="#5a7a42" strokeWidth="3"
+              strokeLinecap="round" opacity="0.8"
             />
           );
         })}
 
         {/* Stem bundle below grip */}
         {Array.from({ length: Math.min(count + 2, 9) }).map((_, i) => {
-          const ox = (i - Math.min(count + 1, 8) / 2) * 3;
+          const ox = (i - Math.min(count + 1, 8) / 2) * 3.5;
           return (
             <line key={`b${i}`}
               x1={GRIP_X + ox} y1={GRIP_Y}
-              x2={GRIP_X + ox * 1.5} y2={H + 10}
-              stroke="#6a8a52" strokeWidth="2.3"
-              strokeLinecap="round" opacity="0.6"
+              x2={GRIP_X + ox * 1.6} y2={H + 10}
+              stroke="#5a7a42" strokeWidth="2.5"
+              strokeLinecap="round" opacity="0.7"
             />
           );
         })}
