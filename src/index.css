@@ -37,6 +37,14 @@
   --success: #6aaf6a;
   --overlay: rgba(58, 58, 58, 0.4);
 
+  /* Rose-gold boutique tokens */
+  --rose-gold: #c9956c;
+  --rose-gold-light: #e8c9a8;
+  --rose-gold-glow: 0 0 0 2px #c9956c, 0 4px 12px rgba(201, 149, 108, 0.25);
+
+  /* Canvas / preview background */
+  --cream-base: #faf8f3;
+
   /* Typography */
   --font-heading: 'Playfair Display', Georgia, 'Times New Roman', serif;
   --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;

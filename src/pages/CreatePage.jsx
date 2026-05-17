@@ -30,16 +30,17 @@ export default function CreatePage() {
   const [occasion, setOccasion] = useState('just-because');
   const [isPublic, setIsPublic] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const [bouquetSeed] = useState(() => Math.floor(Math.random() * 100000));
 
   const handleAddFlower = (flower) => {
-    if (flowers.length >= 12) return; // Limit to 12
+    if (flowers.length >= 12) return;
     setFlowers((prev) => [...prev, flower]);
   };
 
   const handleRandomize = () => {
     const catalogKeys = Object.keys(FLOWER_TYPES);
-    const count = Math.floor(Math.random() * 5) + 6; // Random amount between 6 and 10
+    const count = Math.floor(Math.random() * 5) + 6; // 6–10
     const newFlowers = [];
     for (let i = 0; i < count; i++) {
       const randomKey = catalogKeys[Math.floor(Math.random() * catalogKeys.length)];
@@ -55,6 +56,7 @@ export default function CreatePage() {
   const handleSend = async () => {
     if (!flowers.length) return;
     setSaving(true);
+    setSaveError('');
 
     try {
       const id = await createBouquet(user?.uid || 'demo', {
@@ -69,12 +71,13 @@ export default function CreatePage() {
       navigate(`/view/${id}`);
     } catch (err) {
       console.error('Error creating bouquet:', err);
-      alert('Failed to create bouquet. Please try again.');
+      setSaveError('Failed to create bouquet. Please try again.');
     } finally {
       setSaving(false);
     }
   };
 
+  const showMessagePreview = to && message && from && flowers.length > 0;
 
   return (
     <motion.div
@@ -107,6 +110,7 @@ export default function CreatePage() {
                       className="chip-remove"
                       onClick={() => handleRemoveFlower(i)}
                       title="Remove"
+                      aria-label={`Remove ${f.type.replace(/_/g, ' ')}`}
                     >×</button>
                   </span>
                 ))}
@@ -178,6 +182,12 @@ export default function CreatePage() {
             </label>
           </div>
 
+          {saveError && (
+            <div className="save-error" role="alert">
+              {saveError}
+            </div>
+          )}
+
           <div className="create-actions">
             <button
               className="btn btn-primary btn-lg"
@@ -186,7 +196,11 @@ export default function CreatePage() {
               id="create-send"
               style={{ width: '100%' }}
             >
-              {saving ? 'Saving your bouquet…' : flowers.length < 1 ? 'Add a flower first' : '✿ Send Bouquet'}
+              {saving
+                ? 'Saving your bouquet…'
+                : flowers.length < 1
+                ? 'Add a flower first'
+                : '✿ Send Bouquet'}
             </button>
             <button
               className="btn btn-secondary btn-lg"
@@ -203,17 +217,21 @@ export default function CreatePage() {
         <div className="create-panel create-preview">
           <div className="preview-label">
             <span>Live Preview</span>
-            {flowers.length < 1 && <span className="subtext" style={{ color: 'var(--rose-deep)' }}>Pick a flower to begin...</span>}
+            {flowers.length < 1 && (
+              <span className="subtext" style={{ color: 'var(--rose-deep)' }}>
+                Pick a flower to begin...
+              </span>
+            )}
           </div>
           <div className="preview-canvas" ref={bouquetRef}>
             <AIBouquetViewer flowers={flowers} />
           </div>
 
-          {(to || message) && flowers.length > 0 && (
+          {showMessagePreview && (
             <div className="preview-message">
-              {to && <p className="preview-to">For <strong>{to}</strong></p>}
-              {message && <p className="preview-msg">"{message}"</p>}
-              {from && <p className="preview-from">— {from}</p>}
+              <p className="preview-to">For <strong>{to}</strong></p>
+              <p className="preview-msg">"{message}"</p>
+              <p className="preview-from">— {from}</p>
             </div>
           )}
         </div>
