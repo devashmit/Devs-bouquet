@@ -16,25 +16,24 @@ import { zOrderSort } from '../engine/bouquetEngine';
 const W = 500;
 const H = 500;
 const CX = W / 2;
-const CY = H * 0.42; // flower cluster center — upper area of greenery
+const CY = H * 0.38; // flowers in upper portion, clearly visible above greenery
 
-// Fixed positions for up to 5 flowers inside the greenery
-// Tight cluster, flowers overlap naturally like a real bouquet
+// Fixed positions for up to 5 flowers — spread wider so none are hidden
 const FLOWER_POSITIONS = [
   { dx: 0,    dy: 0,   rot: 0,   scale: 1.00 }, // center focal
-  { dx: -55,  dy: 15,  rot: -12, scale: 0.82 }, // left
-  { dx: 55,   dy: 15,  rot: 12,  scale: 0.82 }, // right
-  { dx: -28,  dy: -45, rot: -6,  scale: 0.75 }, // upper left
-  { dx: 28,   dy: -45, rot: 6,   scale: 0.75 }, // upper right
+  { dx: -65,  dy: 20,  rot: -14, scale: 0.85 }, // left
+  { dx: 65,   dy: 20,  rot: 14,  scale: 0.85 }, // right
+  { dx: -32,  dy: -52, rot: -7,  scale: 0.80 }, // upper left
+  { dx: 32,   dy: -52, rot: 7,   scale: 0.80 }, // upper right
 ];
 
-// Flower head size — small enough to sit inside greenery naturally
+// Flower head size
 function getHeadSize(count) {
-  if (count === 1) return 180;
-  if (count === 2) return 155;
-  if (count === 3) return 138;
-  if (count === 4) return 125;
-  return 115; // 5 flowers
+  if (count === 1) return 200;
+  if (count === 2) return 170;
+  if (count === 3) return 150;
+  if (count === 4) return 135;
+  return 122; // 5 flowers
 }
 
 export default function BouquetCanvas({ flowers = [], greenery = null }) {
@@ -76,16 +75,15 @@ export default function BouquetCanvas({ flowers = [], greenery = null }) {
 
         <rect width={W} height={H} fill="#ffffff"/>
 
-        {/* Greenery — large, fills canvas, behind flowers */}
+        {/* Greenery — large base, positioned lower so flowers sit above it */}
         {greeneryImage && (
           <image
             href={greeneryImage}
             x={(W - greenerySize) / 2}
-            y={(H - greenerySize) / 2}
+            y={H * 0.28}
             width={greenerySize}
             height={greenerySize}
-            preserveAspectRatio="xMidYMid meet"
-            style={{ mixBlendMode: 'multiply' }}
+            preserveAspectRatio="xMidYMin meet"
           />
         )}
 
