@@ -29,7 +29,8 @@
 
 .view-bouquet {
   width: 100%;
-  max-width: 420px;
+  max-width: 480px;
+  aspect-ratio: 1;
   background: white;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lifted);

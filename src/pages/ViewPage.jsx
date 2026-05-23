@@ -143,7 +143,7 @@ export default function ViewPage() {
           initial="hidden"
           animate="visible"
         >
-          <AIBouquetViewer flowers={bouquet.flowers || []} />
+          <AIBouquetViewer flowers={bouquet.flowers || []} greenery={bouquet.greenery || 'eucalyptus'} />
         </motion.div>
 
         {/* Message */}
