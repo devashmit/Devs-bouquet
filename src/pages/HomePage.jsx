@@ -10,6 +10,7 @@ const demoBouquet = [
   { type: 'classic_red_rose' },
   { type: 'romantic_pink_peony' },
   { type: 'vibrant_sunflower' },
+  { type: 'delicate_white_lily' },
 ];
 
 export default function HomePage() {
@@ -21,64 +22,100 @@ export default function HomePage() {
       animate="animate"
       exit="exit"
     >
-      <FloatingPetals count={6} />
+      <FloatingPetals count={8} />
 
-      {/* Hero Section */}
+      {/* ── Hero ── */}
       <section className="hero-section" id="hero">
+
+        {/* Left — Editorial content */}
         <motion.div
-          className="hero-content container"
-          variants={staggerContainer(0.15)}
+          className="hero-content"
+          variants={staggerContainer(0.12)}
           initial="hidden"
           animate="visible"
         >
           <motion.p variants={fadeInUp} className="hero-eyebrow">
-            ✿ hand-drawn with heart
+            Digital Floral Atelier
           </motion.p>
+
           <motion.h1 variants={fadeInUp} className="hero-title">
-            Sketching feelings<br />into flowers.
+            Sketching<br />
+            <em>feelings</em><br />
+            into flowers.
           </motion.h1>
-          <motion.p variants={fadeInUp} className="hero-subtitle tagline">
-            Hand-drawn petals, carrying unspoken words.
+
+          <motion.p variants={fadeInUp} className="hero-subtitle">
+            Compose a bouquet from hand-painted botanicals.
+            Attach a message. Share a moment that blooms.
           </motion.p>
+
           <motion.div variants={fadeInUp} className="hero-actions">
             <Link to="/create" className="btn btn-primary btn-lg" id="hero-cta-create">
-              Draw a Bouquet
+              Compose a Bouquet
             </Link>
-            <Link to="/garden" className="btn btn-secondary btn-lg" id="hero-cta-garden">
-              Visit the Garden
+            <div className="hero-divider" />
+            <Link to="/garden" className="btn btn-secondary" id="hero-cta-garden">
+              The Garden
             </Link>
           </motion.div>
         </motion.div>
 
-        {/* Hero Bouquet Preview */}
-        <motion.div
-          className="hero-bouquet"
-          initial={{ opacity: 0, scale: 0.8, y: 30 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 1.2, delay: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-        >
-          <div className="hero-bouquet-wrapper">
+        {/* Right — Cinematic bouquet */}
+        <div className="hero-bouquet">
+          <motion.div
+            className="hero-bouquet-wrapper"
+            initial={{ opacity: 0, y: 40, scale: 0.92 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 1.4, delay: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+          >
             <AIBouquetViewer flowers={demoBouquet} />
-          </div>
-        </motion.div>
+          </motion.div>
+          <motion.p
+            className="hero-bouquet-label"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.8, duration: 0.8 }}
+          >
+            A bouquet composed just for you
+          </motion.p>
+        </div>
       </section>
 
-      {/* Features Section */}
+      {/* ── Features ── */}
       <section className="features-section container" id="features">
+        <p className="features-eyebrow">The Atelier</p>
+        <h2 className="features-title">Where every petal is intentional.</h2>
+
         <motion.div
           className="features-grid"
-          variants={staggerContainer(0.12)}
+          variants={staggerContainer(0.1)}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: '-80px' }}
+          viewport={{ once: true, margin: '-60px' }}
         >
           {[
-            { icon: '✏️', title: 'Hand-Drawn', desc: 'Every line has a wobble. Every petal is imperfect. Because real things are.' },
-            { icon: '💌', title: 'Carry a Message', desc: 'Attach words that matter. Say what flowers alone cannot.' },
-            { icon: '🔗', title: 'Share a Link', desc: 'One link. One moment. Beautifully revealed with animation.' },
-            { icon: '💐', title: 'Send One Back', desc: 'Received a bouquet? Draw one in return. Keep the bloom going.' },
+            {
+              icon: '🌸',
+              title: 'Botanical Illustrations',
+              desc: 'Hand-painted watercolor flowers — each one a small work of art.',
+            },
+            {
+              icon: '💌',
+              title: 'Carry a Message',
+              desc: 'Attach words that matter. Say what flowers alone cannot.',
+            },
+            {
+              icon: '🔗',
+              title: 'Share a Link',
+              desc: 'One link. One moment. Beautifully revealed with animation.',
+            },
+            {
+              icon: '💐',
+              title: 'Send One Back',
+              desc: 'Received a bouquet? Draw one in return. Keep the bloom going.',
+            },
           ].map((f, i) => (
-            <motion.div key={i} variants={fadeInUp} className="feature-card glass-card">
+            <motion.div key={i} variants={fadeInUp} className="feature-card">
               <span className="feature-icon">{f.icon}</span>
               <h3>{f.title}</h3>
               <p>{f.desc}</p>
@@ -87,20 +124,20 @@ export default function HomePage() {
         </motion.div>
       </section>
 
-      {/* Bottom CTA */}
+      {/* ── Bottom CTA ── */}
       <section className="bottom-cta container text-center" id="bottom-cta">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.7 }}
         >
-          <h2>Every bouquet begins<br />with a single line.</h2>
-          <p className="tagline" style={{ margin: '1rem auto' }}>
-            Where every bouquet is drawn, not sent.
+          <h2>Every bouquet begins<br />with a single flower.</h2>
+          <p className="tagline">
+            Drawn softly. Sent meaningfully.
           </p>
           <Link to="/create" className="btn btn-primary btn-lg" id="bottom-cta-create">
-            Start Drawing ✿
+            Start Composing ✿
           </Link>
         </motion.div>
       </section>

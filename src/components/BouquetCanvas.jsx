@@ -47,6 +47,35 @@ export default function BouquetCanvas({ flowers = [] }) {
       {/* Background */}
       <rect width={W} height={H} fill="#faf8f3" />
 
+      {/* Paper texture — subtle noise pattern */}
+      <filter id="paper-texture">
+        <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" result="noise"/>
+        <feColorMatrix type="saturate" values="0" in="noise" result="grayNoise"/>
+        <feBlend in="SourceGraphic" in2="grayNoise" mode="multiply" result="blended"/>
+        <feComponentTransfer in="blended">
+          <feFuncA type="linear" slope="1"/>
+        </feComponentTransfer>
+      </filter>
+
+      {/* Warm vignette */}
+      <defs>
+        <radialGradient id="vignette" cx="50%" cy="45%" r="65%">
+          <stop offset="0%" stopColor="transparent"/>
+          <stop offset="100%" stopColor="rgba(180,120,80,0.06)"/>
+        </radialGradient>
+        {/* Soft shadow under bouquet */}
+        <radialGradient id="bouquet-shadow" cx="50%" cy="100%" r="40%">
+          <stop offset="0%" stopColor="rgba(100,60,40,0.08)"/>
+          <stop offset="100%" stopColor="transparent"/>
+        </radialGradient>
+      </defs>
+
+      {/* Atmospheric background wash */}
+      <ellipse cx={W * 0.5} cy={H * 0.35} rx={W * 0.55} ry={H * 0.42}
+        fill="rgba(244,194,194,0.06)" />
+      <ellipse cx={W * 0.35} cy={H * 0.45} rx={W * 0.3} ry={H * 0.25}
+        fill="rgba(196,183,212,0.04)" />
+
       {/* Stem bundle below tie point — REMOVED, looks cleaner without */}
 
 
@@ -131,6 +160,13 @@ export default function BouquetCanvas({ flowers = [] }) {
         />
         <ellipse cx="-2" cy="2" rx="4.5" ry="3" fill="rgba(255,255,255,0.65)" stroke="none" />
       </g>
+
+      {/* Vignette overlay — depth */}
+      <rect width={W} height={H} fill="url(#vignette)" style={{ pointerEvents: 'none' }} />
+
+      {/* Ground shadow under stems */}
+      <ellipse cx={TIE_X} cy={TIE_Y + 20} rx={60} ry={12}
+        fill="url(#bouquet-shadow)" opacity="0.6" />
     </svg>
   );
 }
