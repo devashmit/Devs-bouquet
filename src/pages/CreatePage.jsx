@@ -50,7 +50,7 @@ export default function CreatePage() {
   };
 
   const handleAddFlower = (flower) => {
-    if (flowers.length >= 12) return;
+    if (flowers.length >= 5) return; // max 5
     setFlowers(prev => [...prev, flower]);
   };
 
@@ -61,7 +61,7 @@ export default function CreatePage() {
 
   const handleRandomize = () => {
     const keys = Object.keys(FLOWER_TYPES);
-    const count = Math.floor(Math.random() * 4) + 4;
+    const count = Math.floor(Math.random() * 3) + 3; // 3-5
     setFlowers(Array.from({ length: count }, () => ({
       type: keys[Math.floor(Math.random() * keys.length)]
     })));

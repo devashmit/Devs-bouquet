@@ -9,7 +9,7 @@ export default function FlowerPicker({ onAddFlower, selectedFlowers = [] }) {
   const total = selectedFlowers.length;
 
   const handleSelect = (flower) => {
-    if (total >= 12) return;
+    if (total >= 5) return; // max 5
     onAddFlower({ type: flower.id });
   };
 
@@ -17,7 +17,7 @@ export default function FlowerPicker({ onAddFlower, selectedFlowers = [] }) {
     <div className="flower-picker">
       <div className="picker-label">
         <span>Choose your flowers</span>
-        <span className="picker-count">{total} / 12</span>
+        <span className="picker-count">{total} / 5</span>
       </div>
 
       <div className="picker-grid">
