@@ -17,7 +17,8 @@ import FLOWER_TYPES from './flowers/index.jsx';
 export function getFanAngles(count) {
   if (count === 0) return [];
   if (count === 1) return [0];
-  const totalArc = Math.min(22 + (count - 2) * 13, 95);
+  // Wider spread — 2 flowers = 40°, 3 = 60°, 4 = 80°, max 110°
+  const totalArc = Math.min(40 + (count - 2) * 20, 110);
   return Array.from({ length: count }, (_, i) => {
     const t = i / (count - 1) - 0.5;
     return t * totalArc;

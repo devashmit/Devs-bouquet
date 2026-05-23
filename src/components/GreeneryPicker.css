@@ -57,10 +57,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f8faf6;
+  background: #f4f8f0;
   border-radius: var(--radius-sm);
   overflow: hidden;
 }
+
+.greenery-img {
+  width: 88%;
+  height: 88%;
+  object-fit: contain;
+  display: block;
+  mix-blend-mode: multiply;
+  transition: transform 0.3s;
+}
+
+.greenery-card:hover .greenery-img { transform: scale(1.05); }
 
 .greenery-name {
   font-family: var(--font-body);
