@@ -448,23 +448,28 @@
   margin-top: 0.2rem;
 }
 
-/* Preview empty state */
-.preview-empty {
+/* Preview hint (step 0) */
+.preview-hint {
   width: 100%;
-  height: 100%;
+  max-width: 520px;
+  aspect-ratio: 480 / 580;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
+  gap: 1rem;
   background: #faf8f3;
+  border-radius: 2px;
+  border: 1px dashed #e0d0c8;
 }
 
-.preview-empty p {
+.preview-hint p {
   font-family: var(--font-display);
   font-style: italic;
   font-size: 0.9rem;
   color: var(--charcoal-faint);
+  text-align: center;
+  line-height: 1.6;
   margin: 0;
 }
 

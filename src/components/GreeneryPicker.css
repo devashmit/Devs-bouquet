@@ -1,38 +1,50 @@
-/* ── Greenery Picker ── */
-
 .greenery-picker {
-  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.greenery-category {}
+
+.greenery-cat-label {
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--charcoal-faint);
+  margin: 0 0 0.5rem;
 }
 
 .greenery-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .greenery-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
   background: white;
   border: 1.5px solid #ede5dc;
   border-radius: var(--radius-md);
-  padding: 0.75rem 0.5rem;
+  padding: 0.6rem 0.4rem 0.5rem;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 0.2s;
   outline: none;
 }
 
 .greenery-card:hover {
   border-color: #a8c898;
-  box-shadow: 0 4px 16px rgba(80, 140, 60, 0.1);
+  box-shadow: 0 3px 12px rgba(80,140,60,0.1);
 }
 
 .greenery-card.selected {
   border-color: #5a9a48;
   background: #f4faf0;
-  box-shadow: 0 0 0 1.5px #5a9a48, 0 4px 16px rgba(80, 140, 60, 0.15);
+  box-shadow: 0 0 0 1.5px #5a9a48;
 }
 
 .greenery-img-wrap {
@@ -40,19 +52,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 60px;
+  min-height: 52px;
 }
 
 .greenery-name {
   font-family: var(--font-body);
-  font-size: 0.78rem;
+  font-size: 0.68rem;
   font-weight: 500;
   color: var(--warm-charcoal);
-  letter-spacing: 0.02em;
+  text-align: center;
+  line-height: 1.3;
 }
 
 @media (max-width: 480px) {
-  .greenery-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  .greenery-grid { grid-template-columns: repeat(3, 1fr); }
 }

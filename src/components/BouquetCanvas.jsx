@@ -1,105 +1,80 @@
 import React, { useMemo } from 'react';
 import FLOWER_TYPES from '../engine/flowers';
-import GREENERY_TYPES from '../engine/greenery';
+import GREENERY_CATALOG from '../engine/greenery';
 import { getFanAngles, getRibbonColor, zOrderSort } from '../engine/bouquetEngine';
 
 /**
  * BouquetCanvas — premium flower head composition.
  *
- * Each flower PNG is clipped to show only the bloom (top headCrop fraction).
- * The clipped head sits above TIE_Y; unified stems are drawn below.
- * Greenery SVG sits behind flowers at the base.
+ * - Uses pre-cropped *_head.png (stems removed)
+ * - Selected greenery rendered behind flowers
+ * - No bow — clean professional look
+ * - mix-blend-mode: multiply removes white PNG backgrounds
  */
 
 const W = 500;
-const H = 600;
+const H = 580;
 const TIE_X = W / 2;
 const TIE_Y = H * 0.70;
 
-function getImgSize(count) {
-  if (count === 1) return 320;
-  if (count === 2) return 280;
-  if (count === 3) return 250;
-  if (count === 4) return 225;
-  if (count === 5) return 205;
-  if (count === 6) return 188;
-  return Math.max(155, 188 - (count - 6) * 10);
+function getHeadSize(count) {
+  if (count === 1) return 260;
+  if (count === 2) return 220;
+  if (count === 3) return 195;
+  if (count === 4) return 175;
+  if (count === 5) return 158;
+  if (count === 6) return 144;
+  return Math.max(118, 144 - (count - 6) * 9);
 }
 
-export default function BouquetCanvas({ flowers = [], greenery = 'leafy' }) {
+export default function BouquetCanvas({ flowers = [], greenery = null }) {
   const count = flowers.length;
-  const angles  = useMemo(() => getFanAngles(count), [count]);
-  const imgSize = useMemo(() => getImgSize(count), [count]);
-  const ribbon  = useMemo(() => getRibbonColor(flowers), [flowers]);
-  const ordered = useMemo(() => zOrderSort(flowers), [flowers]);
+  const angles   = useMemo(() => getFanAngles(count), [count]);
+  const headSize = useMemo(() => getHeadSize(count), [count]);
+  const ordered  = useMemo(() => zOrderSort(flowers), [flowers]);
 
   if (count === 0) return null;
 
-  const GreeneryComponent = GREENERY_TYPES[greenery]?.component;
-  const greeneryW = Math.min(count * 28 + 90, 220);
+  const GreeneryEntry = greenery ? GREENERY_CATALOG[greenery] : null;
+  const GreeneryComponent = GreeneryEntry?.component ?? null;
+  const greeneryW = Math.min(count * 28 + 110, 260);
 
   return (
-    <div style={{ width: '100%', height: '100%', background: '#ffffff', position: 'relative', overflow: 'hidden' }}>
+    <div style={{
+      width: '100%', height: '100%',
+      background: '#ffffff',
+      position: 'relative',
+      overflow: 'hidden',
+      isolation: 'isolate',
+    }}>
       <svg
         viewBox={`0 0 ${W} ${H}`}
         preserveAspectRatio="xMidYMid meet"
         style={{ width: '100%', height: '100%', display: 'block' }}
       >
         <defs>
-          {/* Clip path for each flower — ellipse covering only the head area */}
-          {ordered.map(({ type, originalIndex }) => {
-            const info = FLOWER_TYPES[type];
-            if (!info) return null;
-            const headH = imgSize * info.headCrop;
-            const ix = TIE_X - imgSize / 2;
-            const iy = TIE_Y - headH; // top of visible head area
-
-            // Ellipse clip — slightly wider than the image, rounded at top
-            // This gives a natural petal-shaped crop instead of a hard rectangle
-            const clipCx = TIE_X;
-            const clipCy = iy + headH * 0.45;
-            const clipRx = imgSize * 0.48;
-            const clipRy = headH * 0.55;
-
-            return (
-              <clipPath key={`clip-${originalIndex}`} id={`head-clip-${originalIndex}`}>
-                <ellipse cx={clipCx} cy={clipCy} rx={clipRx} ry={clipRy} />
-              </clipPath>
-            );
-          })}
-
-          {/* Drop shadow filter */}
-          <filter id="flower-shadow" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="0" dy="4" stdDeviation="6" floodColor="#8a5040" floodOpacity="0.12"/>
+          <filter id="head-shadow" x="-25%" y="-25%" width="150%" height="150%">
+            <feDropShadow dx="0" dy="3" stdDeviation="5" floodColor="#5a3020" floodOpacity="0.10"/>
           </filter>
-
-          {/* Blur filter for background flowers */}
-          <filter id="flower-blur">
+          <filter id="head-blur">
             <feGaussianBlur stdDeviation="0.8"/>
           </filter>
-
-          {/* Warm vignette */}
-          <radialGradient id="vignette" cx="50%" cy="45%" r="60%">
-            <stop offset="0%" stopColor="transparent"/>
-            <stop offset="100%" stopColor="rgba(160,100,70,0.04)"/>
+          <radialGradient id="bg-atmo" cx="50%" cy="40%" r="55%">
+            <stop offset="0%" stopColor="rgba(244,194,194,0.04)"/>
+            <stop offset="100%" stopColor="transparent"/>
           </radialGradient>
         </defs>
 
-        {/* Background */}
         <rect width={W} height={H} fill="#ffffff"/>
-        <rect width={W} height={H} fill="url(#vignette)"/>
+        <rect width={W} height={H} fill="url(#bg-atmo)"/>
 
-        {/* Atmospheric wash */}
-        <ellipse cx={W*0.5} cy={H*0.38} rx={W*0.48} ry={H*0.35}
-          fill="rgba(244,194,194,0.04)"/>
-
-        {/* Greenery behind everything */}
+        {/* Greenery layer — behind flowers */}
         {GreeneryComponent && (
           <foreignObject
             x={TIE_X - greeneryW / 2}
-            y={TIE_Y - greeneryW * 0.5}
+            y={TIE_Y - greeneryW * 0.48}
             width={greeneryW}
-            height={greeneryW * 0.7}
+            height={greeneryW * 0.72}
           >
             <div xmlns="http://www.w3.org/1999/xhtml"
               style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -108,82 +83,60 @@ export default function BouquetCanvas({ flowers = [], greenery = 'leafy' }) {
           </foreignObject>
         )}
 
-        {/* Unified stems — curved paths from TIE_Y downward */}
-        <g opacity="0.72">
+        {/* Unified stems */}
+        <g opacity="0.68">
           {ordered.map(({ originalIndex }) => {
-            const angle = angles[originalIndex] ?? 0;
-            const rad = (angle * Math.PI) / 180;
-            // Stem starts just below TIE_Y, spreads slightly
-            const spread = originalIndex - (count - 1) / 2;
-            const endX = TIE_X + spread * 5;
-            const endY = H + 10;
-            const cp1x = TIE_X + Math.sin(rad) * 15;
-            const cp1y = TIE_Y + 30;
-            const cp2x = endX + spread * 3;
-            const cp2y = TIE_Y + (H - TIE_Y) * 0.5;
+            const spread = (originalIndex - (count - 1) / 2) * 5;
             return (
               <path key={`stem-${originalIndex}`}
-                d={`M ${TIE_X} ${TIE_Y} C ${cp1x} ${cp1y} ${cp2x} ${cp2y} ${endX} ${endY}`}
-                fill="none" stroke="#5a7a42" strokeWidth="2.2" strokeLinecap="round"/>
+                d={`M ${TIE_X + spread * 0.15} ${TIE_Y + 2} C ${TIE_X + spread * 0.4} ${TIE_Y + 35} ${TIE_X + spread * 0.7} ${TIE_Y + 75} ${TIE_X + spread} ${H + 10}`}
+                fill="none" stroke="#5a7a42" strokeWidth="2.0" strokeLinecap="round"
+              />
             );
           })}
         </g>
 
-        {/* Flower heads — clipped to show only bloom area */}
+        {/* Flower heads */}
         {ordered.map(({ type, originalIndex }, renderIdx) => {
           const info = FLOWER_TYPES[type];
           if (!info) return null;
-          const angle = angles[originalIndex] ?? 0;
-          const isOuter = Math.abs(originalIndex - (count - 1) / 2) > (count - 1) / 3;
-          const headH = imgSize * info.headCrop;
 
-          // Image positioned so bottom of head area = TIE_Y
-          const ix = TIE_X - imgSize / 2;
-          const iy = TIE_Y - headH;
+          const angle = angles[originalIndex] ?? 0;
+          const isOuter = renderIdx < Math.floor(ordered.length * 0.35) && count > 3;
+
+          const ix = TIE_X - headSize / 2;
+          const iy = TIE_Y - headSize;
 
           return (
             <g
-              key={`flower-${originalIndex}-${type}`}
+              key={`head-${originalIndex}-${type}`}
               transform={`rotate(${angle}, ${TIE_X}, ${TIE_Y})`}
-              filter={isOuter && count > 3 ? 'url(#flower-blur)' : 'url(#flower-shadow)'}
+              filter={isOuter ? 'url(#head-blur)' : 'url(#head-shadow)'}
             >
               <image
-                href={info.image}
-                x={ix}
-                y={iy}
-                width={imgSize}
-                height={imgSize}
-                preserveAspectRatio="xMidYMin meet"
-                clipPath={`url(#head-clip-${originalIndex})`}
+                href={info.headImage}
+                x={ix} y={iy}
+                width={headSize} height={headSize}
+                preserveAspectRatio="xMidYMax meet"
                 style={{ mixBlendMode: 'multiply' }}
               />
             </g>
           );
         })}
 
-        {/* Ribbon bow */}
-        <g transform={`translate(${TIE_X},${TIE_Y})`}>
-          {/* Left loop */}
-          <path d="M0,0 C-8,-10 -48,-22 -50,2 C-50,16 -26,20 0,0Z"
-            fill={ribbon.fill} stroke={ribbon.stroke} strokeWidth="1.2" opacity="0.95"/>
-          <path d="M0,0 C-8,-10 -48,-22 -50,2 C-50,16 -26,20 0,0Z"
-            fill="rgba(255,255,255,0.35)" stroke="none"/>
-          {/* Right loop */}
-          <path d="M0,0 C8,-10 48,-22 50,2 C50,16 26,20 0,0Z"
-            fill={ribbon.fill} stroke={ribbon.stroke} strokeWidth="1.2" opacity="0.95"/>
-          <path d="M0,0 C8,-10 48,-22 50,2 C50,16 26,20 0,0Z"
-            fill="rgba(255,255,255,0.35)" stroke="none"/>
-          {/* Short tails */}
-          <path d="M-4,5 C-12,18 -20,34 -14,46 C-8,32 -3,18 0,7Z"
-            fill={ribbon.fill} stroke={ribbon.stroke} strokeWidth="1" opacity="0.85"/>
-          <path d="M4,5 C12,18 20,34 14,46 C8,32 3,18 0,7Z"
-            fill={ribbon.fill} stroke={ribbon.stroke} strokeWidth="1" opacity="0.85"/>
-          {/* Knot */}
-          <ellipse cx="0" cy="3" rx="9" ry="7"
-            fill={ribbon.fill} stroke={ribbon.stroke} strokeWidth="1.3"/>
-          <ellipse cx="-1.5" cy="1.5" rx="3.5" ry="2.5"
-            fill="rgba(255,255,255,0.6)" stroke="none"/>
-        </g>
+        {/* Stem tie — simple wrap, no bow */}
+        <rect
+          x={TIE_X - 12} y={TIE_Y - 4}
+          width={24} height={14}
+          rx="3"
+          fill="#c8b090" opacity="0.55"
+        />
+        <rect
+          x={TIE_X - 10} y={TIE_Y - 2}
+          width={20} height={10}
+          rx="2"
+          fill="#d8c0a0" opacity="0.4"
+        />
       </svg>
     </div>
   );

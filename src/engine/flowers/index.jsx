@@ -1,16 +1,14 @@
 /**
  * Flower catalog.
- * - `image`: full botanical PNG (used in picker cards)
- * - `headCrop`: fraction of image height to show as flower head (0–1)
- *   The clip mask will show only the top `headCrop` of the image.
- * - `headOffsetY`: fine-tune vertical offset of the head within the crop (0 = top, 1 = bottom)
+ * - `image`: full botanical PNG — used in picker cards
+ * - `headImage`: cropped head-only PNG — used in bouquet canvas
  * - `dominantColor`: used for ribbon color selection
  */
 export const FLOWER_TYPES = {
   classic_red_rose: {
     name: 'Classic Red Rose',
     image: '/assets/flowers/classic_red_rose.png',
-    headCrop: 0.52,
+    headImage: '/assets/flowers/classic_red_rose_head.png',
     dominantColor: 'red',
     description: 'Deep crimson petals, timeless romance',
     poetic: 'A love letter written in velvet.',
@@ -18,7 +16,7 @@ export const FLOWER_TYPES = {
   romantic_pink_peony: {
     name: 'Romantic Pink Peony',
     image: '/assets/flowers/romantic_pink_peony.png',
-    headCrop: 0.50,
+    headImage: '/assets/flowers/romantic_pink_peony_head.png',
     dominantColor: 'pink',
     description: 'Lush, layered petals in soft blush',
     poetic: 'Abundance in every layer.',
@@ -26,7 +24,7 @@ export const FLOWER_TYPES = {
   vibrant_sunflower: {
     name: 'Vibrant Sunflower',
     image: '/assets/flowers/vibrant_sunflower.png',
-    headCrop: 0.48,
+    headImage: '/assets/flowers/vibrant_sunflower_head.png',
     dominantColor: 'warm',
     description: 'Bright yellow petals, sun-kissed joy',
     poetic: 'Always turning toward the light.',
@@ -34,7 +32,7 @@ export const FLOWER_TYPES = {
   delicate_white_lily: {
     name: 'Delicate White Lily',
     image: '/assets/flowers/delicate_white_lily.png',
-    headCrop: 0.50,
+    headImage: '/assets/flowers/delicate_white_lily_head.png',
     dominantColor: 'white',
     description: 'Star-shaped petals, pure elegance',
     poetic: 'Quiet grace in every petal.',
@@ -42,7 +40,7 @@ export const FLOWER_TYPES = {
   textured_blue_hydrangea: {
     name: 'Blue Hydrangea',
     image: '/assets/flowers/textured_blue_hydrangea.png',
-    headCrop: 0.52,
+    headImage: '/assets/flowers/textured_blue_hydrangea_head.png',
     dominantColor: 'blue',
     description: 'Clusters of azure, rich and full',
     poetic: 'A cloud of color, softly gathered.',
@@ -50,7 +48,7 @@ export const FLOWER_TYPES = {
   cheerful_daisy: {
     name: 'Cheerful Daisy',
     image: '/assets/flowers/cheerful_daisy.png',
-    headCrop: 0.50,
+    headImage: '/assets/flowers/cheerful_daisy_head.png',
     dominantColor: 'warm',
     description: 'White petals with a golden heart',
     poetic: 'Simple joy, honestly bloomed.',

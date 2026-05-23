@@ -285,22 +285,21 @@ export default function CreatePage() {
           </AnimatePresence>
         </div>
 
-        {/* Right — live preview */}
+        {/* Right — live preview — only shown from greenery step onwards */}
         <div className="create-panel create-preview">
-          {/* Card preview on message step */}
           {step === 2 ? (
+            /* Card preview on message step */
             <div className="card-preview-layout">
               <div className="card-preview">
-                <div className="card-corner tl"/>
-                <div className="card-corner tr"/>
-                <div className="card-corner bl"/>
-                <div className="card-corner br"/>
+                <div className="card-corner tl"/><div className="card-corner tr"/>
+                <div className="card-corner bl"/><div className="card-corner br"/>
                 {to && <p className="card-to">To: <em>{to}</em></p>}
                 <p className="card-body">{message || <span className="card-placeholder">Your message will appear here…</span>}</p>
                 {from && <p className="card-from">With love, <em>{from}</em></p>}
               </div>
             </div>
-          ) : (
+          ) : step >= 1 ? (
+            /* Bouquet preview — shown from greenery step onwards */
             <>
               <div className="preview-label">
                 <span>Your Bouquet</span>
@@ -309,21 +308,20 @@ export default function CreatePage() {
                 )}
               </div>
               <div className="preview-canvas">
-                {flowers.length > 0 ? (
-                  <BouquetCanvas flowers={flowers} greenery={greenery} />
-                ) : (
-                  <div className="preview-empty">
-                    <svg width="60" height="72" viewBox="0 0 60 72" fill="none">
-                      <circle cx="20" cy="22" r="10" stroke="#e8c8d0" strokeWidth="1.2" strokeDasharray="4 3" fill="none"/>
-                      <circle cx="40" cy="16" r="9" stroke="#d8c8e8" strokeWidth="1.2" strokeDasharray="4 3" fill="none"/>
-                      <circle cx="30" cy="10" r="7" stroke="#c8d8c8" strokeWidth="1.2" strokeDasharray="4 3" fill="none"/>
-                      <line x1="30" y1="42" x2="30" y2="68" stroke="#c8d4c0" strokeWidth="1.5" strokeDasharray="3 3"/>
-                    </svg>
-                    <p>Pick flowers to begin</p>
-                  </div>
-                )}
+                <BouquetCanvas flowers={flowers} greenery={step >= 1 ? greenery : null} />
               </div>
             </>
+          ) : (
+            /* Step 0 — no preview, just a hint */
+            <div className="preview-hint">
+              <svg width="64" height="80" viewBox="0 0 64 80" fill="none">
+                <circle cx="22" cy="22" r="12" stroke="#e8c8d0" strokeWidth="1.2" strokeDasharray="4 3" fill="none"/>
+                <circle cx="42" cy="16" r="10" stroke="#d8c8e8" strokeWidth="1.2" strokeDasharray="4 3" fill="none"/>
+                <circle cx="32" cy="10" r="8" stroke="#c8d8c8" strokeWidth="1.2" strokeDasharray="4 3" fill="none"/>
+                <line x1="32" y1="44" x2="32" y2="72" stroke="#c8d4c0" strokeWidth="1.5" strokeDasharray="3 3"/>
+              </svg>
+              <p>Select your flowers<br/>to begin composing</p>
+            </div>
           )}
         </div>
       </div>
