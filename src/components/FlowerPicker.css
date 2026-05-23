@@ -116,7 +116,6 @@
   overflow: hidden;
 }
 
-/* Subtle watercolor wash behind image */
 .picker-img-wrap::before {
   content: '';
   position: absolute;
@@ -124,20 +123,35 @@
   background: radial-gradient(ellipse at 50% 60%, rgba(244, 194, 194, 0.08) 0%, transparent 70%);
 }
 
+.picker-flower-svg {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 90px;
+  height: 90px;
+  transition: transform 0.4s var(--ease-soft);
+}
+
+.picker-card:hover .picker-flower-svg {
+  transform: scale(1.08) translateY(-2px);
+}
+
 .picker-img {
-  width: 85%;
-  height: 85%;
+  width: 88%;
+  height: 88%;
   object-fit: contain;
   display: block;
   position: relative;
   z-index: 1;
   transition: transform 0.4s var(--ease-soft);
+  mix-blend-mode: multiply;
 }
 
 .picker-card:hover .picker-img {
-  transform: scale(1.04) translateY(-2px);
+  transform: scale(1.05) translateY(-2px);
 }
-
 /* Count badge — rose-gold */
 .picker-badge {
   position: absolute;

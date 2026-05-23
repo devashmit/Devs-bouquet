@@ -1,52 +1,56 @@
 /**
- * Flower Catalog — 6 botanical PNG illustrations.
- * Each entry maps to a real PNG asset in /public/assets/flowers/.
+ * Flower catalog.
+ * - `image`: full botanical PNG (used in picker cards)
+ * - `headCrop`: fraction of image height to show as flower head (0–1)
+ *   The clip mask will show only the top `headCrop` of the image.
+ * - `headOffsetY`: fine-tune vertical offset of the head within the crop (0 = top, 1 = bottom)
+ * - `dominantColor`: used for ribbon color selection
  */
 export const FLOWER_TYPES = {
   classic_red_rose: {
     name: 'Classic Red Rose',
-    role: 'FOCAL',
     image: '/assets/flowers/classic_red_rose.png',
+    headCrop: 0.52,
     dominantColor: 'red',
     description: 'Deep crimson petals, timeless romance',
     poetic: 'A love letter written in velvet.',
   },
   romantic_pink_peony: {
     name: 'Romantic Pink Peony',
-    role: 'FOCAL',
     image: '/assets/flowers/romantic_pink_peony.png',
+    headCrop: 0.50,
     dominantColor: 'pink',
     description: 'Lush, layered petals in soft blush',
     poetic: 'Abundance in every layer.',
   },
   vibrant_sunflower: {
     name: 'Vibrant Sunflower',
-    role: 'FOCAL',
     image: '/assets/flowers/vibrant_sunflower.png',
+    headCrop: 0.48,
     dominantColor: 'warm',
     description: 'Bright yellow petals, sun-kissed joy',
     poetic: 'Always turning toward the light.',
   },
   delicate_white_lily: {
     name: 'Delicate White Lily',
-    role: 'FOUNDATION',
     image: '/assets/flowers/delicate_white_lily.png',
+    headCrop: 0.50,
     dominantColor: 'white',
     description: 'Star-shaped petals, pure elegance',
     poetic: 'Quiet grace in every petal.',
   },
   textured_blue_hydrangea: {
-    name: 'Textured Blue Hydrangea',
-    role: 'FOUNDATION',
+    name: 'Blue Hydrangea',
     image: '/assets/flowers/textured_blue_hydrangea.png',
+    headCrop: 0.52,
     dominantColor: 'blue',
     description: 'Clusters of azure, rich and full',
     poetic: 'A cloud of color, softly gathered.',
   },
   cheerful_daisy: {
     name: 'Cheerful Daisy',
-    role: 'FILLER',
     image: '/assets/flowers/cheerful_daisy.png',
+    headCrop: 0.50,
     dominantColor: 'warm',
     description: 'White petals with a golden heart',
     poetic: 'Simple joy, honestly bloomed.',

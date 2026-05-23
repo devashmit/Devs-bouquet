@@ -3,10 +3,7 @@ import { motion } from 'framer-motion';
 import FLOWER_TYPES from '../engine/flowers';
 import './FlowerPicker.css';
 
-const CATALOG = Object.entries(FLOWER_TYPES).map(([key, val]) => ({
-  id: key,
-  ...val,
-}));
+const CATALOG = Object.entries(FLOWER_TYPES).map(([key, val]) => ({ id: key, ...val }));
 
 export default function FlowerPicker({ onAddFlower, selectedFlowers = [] }) {
   const total = selectedFlowers.length;
@@ -33,13 +30,13 @@ export default function FlowerPicker({ onAddFlower, selectedFlowers = [] }) {
               key={flower.id}
               className={`picker-card${isSelected ? ' selected' : ''}`}
               onClick={() => handleSelect(flower)}
-              whileHover={{ y: -4, scale: 1.03 }}
+              whileHover={{ y: -3, scale: 1.02 }}
               whileTap={{ scale: 0.97 }}
               transition={{ type: 'spring', stiffness: 400, damping: 25 }}
               title={flower.name}
-              aria-label={`${flower.name}${isSelected ? `, selected ${count} time${count !== 1 ? 's' : ''}` : ''}`}
             >
               <div className="picker-img-wrap">
+                {/* Full botanical illustration for the card */}
                 <img
                   src={flower.image}
                   alt={flower.name}
@@ -52,7 +49,6 @@ export default function FlowerPicker({ onAddFlower, selectedFlowers = [] }) {
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: 'spring', stiffness: 500, damping: 25 }}
-                    aria-hidden="true"
                   >
                     {count}
                   </motion.div>

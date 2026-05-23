@@ -17,7 +17,7 @@ import FLOWER_TYPES from './flowers/index.jsx';
 export function getFanAngles(count) {
   if (count === 0) return [];
   if (count === 1) return [0];
-  const totalArc = Math.min(30 + (count - 2) * 20, 100);
+  const totalArc = Math.min(22 + (count - 2) * 13, 95);
   return Array.from({ length: count }, (_, i) => {
     const t = i / (count - 1) - 0.5;
     return t * totalArc;
@@ -32,12 +32,13 @@ export function getFanAngles(count) {
  * count>=6: max(180, 225 - (count-5)*15)
  */
 export function getFlowerSize(count) {
-  if (count === 1) return 380;
-  if (count === 2) return 320;
-  if (count === 3) return 280;
-  if (count === 4) return 250;
-  if (count === 5) return 225;
-  return Math.max(180, 225 - (count - 5) * 15);
+  if (count === 1) return 200;
+  if (count === 2) return 175;
+  if (count === 3) return 155;
+  if (count === 4) return 140;
+  if (count === 5) return 128;
+  if (count === 6) return 118;
+  return Math.max(95, 118 - (count - 6) * 8);
 }
 
 /**
