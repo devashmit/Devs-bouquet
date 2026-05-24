@@ -44,6 +44,13 @@
   overflow: hidden;
 }
 
+.greenery-img {
+  width: 90%;
+  height: 90%;
+  object-fit: contain;
+  display: block;
+}
+
 .greenery-info {
   display: flex;
   flex-direction: column;

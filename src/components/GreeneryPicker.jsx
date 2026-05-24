@@ -10,7 +10,6 @@ export default function GreeneryPicker({ selected, onSelect }) {
     <div className="greenery-picker">
       <div className="greenery-grid">
         {CATALOG.map(g => {
-          const GComp = g.component;
           const isSelected = selected === g.id;
           return (
             <motion.button
@@ -22,7 +21,7 @@ export default function GreeneryPicker({ selected, onSelect }) {
               transition={{ type: 'spring', stiffness: 400, damping: 25 }}
             >
               <div className="greenery-img-wrap">
-                <GComp size={110} />
+                <img src={g.image} alt={g.name} className="greenery-img" loading="lazy"/>
               </div>
               <div className="greenery-info">
                 <span className="greenery-name">{g.name}</span>
