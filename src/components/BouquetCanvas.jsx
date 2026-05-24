@@ -20,59 +20,45 @@ import { zOrderSort } from '../engine/bouquetEngine';
 const W = 500;
 const H = 500;
 
-// Safe zone: flowers must stay within this box (accounting for flower radius)
-// This prevents any flower from being clipped at canvas edges
-const SAFE_PAD = 20; // minimum distance from canvas edge to flower center
+const SAFE_PAD = 20;
 
-// Flower cluster zone — upper-center of canvas where greenery opens up
-// Derived from greenery bounding box: greenery fills ~94% of canvas
-// The "open" zone where flowers should sit is roughly the upper 40% center
-const ZONE_CX = W / 2;       // horizontal center
-const ZONE_CY = H * 0.33;    // vertical center of flower zone (upper third)
-const ZONE_RX = W * 0.22;    // horizontal radius of placement zone (±22% of width)
-const ZONE_RY = H * 0.18;    // vertical radius of placement zone (±18% of height)
+// Flower cluster zone — center of canvas, slightly above middle
+const ZONE_CX = W / 2;
+const ZONE_CY = H * 0.42;  // moved down from 0.33 to prevent top clipping
 
-// Fixed cluster positions — all within the zone, staggered naturally
-// dx/dy are offsets from ZONE_CX/ZONE_CY
 const CLUSTER_POSITIONS = [
-  // 1 flower — dead center
+  [{ dx: 0, dy: 0, rot: 0, scale: 1.0 }],
   [
-    { dx: 0, dy: 0, rot: 0, scale: 1.0 },
+    { dx: -35, dy: 5,  rot: -6,  scale: 0.92 },
+    { dx:  35, dy: -5, rot:  6,  scale: 0.92 },
   ],
-  // 2 flowers — side by side, slight height difference
   [
-    { dx: -38, dy: 5,  rot: -8,  scale: 0.95 },
-    { dx:  38, dy: -5, rot:  8,  scale: 0.95 },
+    { dx:   0, dy: -22, rot:  0,  scale: 0.95 },
+    { dx: -38, dy:  16, rot: -8,  scale: 0.88 },
+    { dx:  38, dy:  16, rot:  8,  scale: 0.88 },
   ],
-  // 3 flowers — triangle: one top-center, two lower sides
   [
-    { dx:   0, dy: -28, rot:  0,  scale: 1.00 },
-    { dx: -44, dy:  18, rot: -10, scale: 0.90 },
-    { dx:  44, dy:  18, rot:  10, scale: 0.90 },
+    { dx:   0, dy: -28, rot:  0,  scale: 0.90 },
+    { dx: -36, dy:   0, rot: -8,  scale: 0.85 },
+    { dx:  36, dy:   0, rot:  8,  scale: 0.85 },
+    { dx:   0, dy:  28, rot:  0,  scale: 0.82 },
   ],
-  // 4 flowers — diamond
   [
-    { dx:   0, dy: -35, rot:  0,  scale: 0.95 },
-    { dx: -42, dy:   0, rot: -10, scale: 0.88 },
-    { dx:  42, dy:   0, rot:  10, scale: 0.88 },
-    { dx:   0, dy:  35, rot:  0,  scale: 0.85 },
-  ],
-  // 5 flowers — arc: top-center + two mid + two lower
-  [
-    { dx:   0, dy: -38, rot:  0,  scale: 0.95 },
-    { dx: -40, dy: -10, rot: -10, scale: 0.88 },
-    { dx:  40, dy: -10, rot:  10, scale: 0.88 },
-    { dx: -24, dy:  30, rot:  -6, scale: 0.83 },
-    { dx:  24, dy:  30, rot:   6, scale: 0.83 },
+    { dx:   0, dy: -32, rot:  0,  scale: 0.88 },
+    { dx: -36, dy:  -8, rot: -8,  scale: 0.82 },
+    { dx:  36, dy:  -8, rot:  8,  scale: 0.82 },
+    { dx: -22, dy:  28, rot: -5,  scale: 0.78 },
+    { dx:  22, dy:  28, rot:  5,  scale: 0.78 },
   ],
 ];
 
 function getBaseSize(count) {
-  if (count <= 1) return 185;
-  if (count === 2) return 162;
-  if (count === 3) return 145;
-  if (count === 4) return 132;
-  return 120;
+  // Smaller sizes to prevent clipping
+  if (count <= 1) return 155;
+  if (count === 2) return 138;
+  if (count === 3) return 125;
+  if (count === 4) return 115;
+  return 105;
 }
 
 /**
