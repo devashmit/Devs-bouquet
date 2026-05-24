@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import BouquetCanvas from './BouquetCanvas';
 import './AIBouquetViewer.css';
 
-export default function AIBouquetViewer({ flowers = [], greenery = 'leafy' }) {
+export default function AIBouquetViewer({ flowers = [], greenery = 'eucalyptus' }) {
   return (
     <div className="ai-bouquet-viewer" id="ai-bouquet-viewer">
       <AnimatePresence mode="wait">
