@@ -138,6 +138,7 @@ export default function BouquetCanvas({ flowers = [], greenery = null }) {
             width={gSize}
             height={gSize}
             preserveAspectRatio="xMidYMid meet"
+            style={{ mixBlendMode: 'multiply' }}
           />
         )}
 
@@ -149,14 +150,9 @@ export default function BouquetCanvas({ flowers = [], greenery = null }) {
           const pos = positions[originalIndex] ?? positions[0];
           const sz = baseSize * pos.scale;
 
-          // Compute top-left from zone center + offset
           const rawX = ZONE_CX + pos.dx - sz / 2;
           const rawY = ZONE_CY + pos.dy - sz / 2;
-
-          // Clamp so flower never gets cut by canvas edge
           const { x: fx, y: fy } = clampFlower(rawX, rawY, sz);
-
-          // Pivot for rotation = center of the flower
           const pivotX = fx + sz / 2;
           const pivotY = fy + sz / 2;
 
@@ -165,6 +161,7 @@ export default function BouquetCanvas({ flowers = [], greenery = null }) {
               key={`fl-${originalIndex}-${type}`}
               transform={`rotate(${pos.rot}, ${pivotX}, ${pivotY})`}
             >
+              {/* No blend mode — flowers have alpha channels, render normally on top */}
               <image
                 href={info.headImage}
                 x={fx}
@@ -172,7 +169,6 @@ export default function BouquetCanvas({ flowers = [], greenery = null }) {
                 width={sz}
                 height={sz}
                 preserveAspectRatio="xMidYMid meet"
-                style={{ mixBlendMode: 'multiply' }}
               />
             </g>
           );
