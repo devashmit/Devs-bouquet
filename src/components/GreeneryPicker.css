@@ -1,22 +1,4 @@
-/* ── Greenery Picker — clean 4-column grid ── */
-
-.greenery-picker {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.greenery-category {}
-
-.greenery-cat-label {
-  font-family: var(--font-body);
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--charcoal-faint);
-  margin: 0 0 0.6rem;
-}
+.greenery-picker { width: 100%; }
 
 .greenery-grid {
   display: grid;
@@ -41,14 +23,14 @@
 
 .greenery-card:hover {
   border-color: #b8d8a8;
-  box-shadow: 0 4px 16px rgba(80, 140, 60, 0.12);
+  box-shadow: 0 4px 16px rgba(80,140,60,0.12);
   transform: translateY(-2px);
 }
 
 .greenery-card.selected {
   border-color: #5a9a48;
   background: #f4faf0;
-  box-shadow: 0 4px 16px rgba(80, 140, 60, 0.18);
+  box-shadow: 0 4px 16px rgba(80,140,60,0.18);
 }
 
 .greenery-img-wrap {
@@ -57,39 +39,39 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f4f8f0;
+  background: #f8faf6;
   border-radius: var(--radius-sm);
   overflow: hidden;
 }
 
-.greenery-img {
-  width: 88%;
-  height: 88%;
-  object-fit: contain;
-  display: block;
-  mix-blend-mode: multiply;
-  transition: transform 0.3s;
+.greenery-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  text-align: center;
+  width: 100%;
 }
-
-.greenery-card:hover .greenery-img { transform: scale(1.05); }
 
 .greenery-name {
-  font-family: var(--font-body);
-  font-size: 0.75rem;
+  font-family: var(--font-display);
+  font-size: 0.82rem;
   font-weight: 500;
   color: var(--warm-charcoal);
-  text-align: center;
-  line-height: 1.3;
 }
 
-.greenery-card.selected .greenery-name {
-  color: #3a7a28;
+.greenery-desc {
+  font-size: 0.65rem;
+  color: var(--charcoal-faint);
+  font-style: italic;
+  line-height: 1.3;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
+
+.greenery-card.selected .greenery-name { color: #3a7a28; }
 
 @media (max-width: 640px) {
-  .greenery-grid { grid-template-columns: repeat(3, 1fr); }
-}
-
-@media (max-width: 400px) {
   .greenery-grid { grid-template-columns: repeat(2, 1fr); }
 }

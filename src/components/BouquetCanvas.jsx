@@ -90,9 +90,10 @@ export default function BouquetCanvas({ flowers = [], greenery = null }) {
 
   if (count === 0) return null;
 
-  // Resolve greenery — fall back to eucalyptus if key not found
-  const greeneryKey = greenery && GREENERY_CATALOG[greenery] ? greenery : 'eucalyptus';
+  // Resolve greenery — fall back to romantic if key not found
+  const greeneryKey = greenery && GREENERY_CATALOG[greenery] ? greenery : 'romantic';
   const greeneryInfo = GREENERY_CATALOG[greeneryKey];
+  const GreeneryComponent = greeneryInfo?.component;
   const gSize = W * 0.94;
   const gX = (W - gSize) / 2;
   const gY = H * 0.06;
@@ -116,16 +117,13 @@ export default function BouquetCanvas({ flowers = [], greenery = null }) {
         <rect width={W} height={H} fill="#ffffff" />
 
         {/* ── Layer 2: Greenery — ALWAYS first, always behind flowers ── */}
-        {greeneryInfo && (
-          <image
-            href={greeneryInfo.image}
-            x={gX}
-            y={gY}
-            width={gSize}
-            height={gSize}
-            preserveAspectRatio="xMidYMid meet"
-            style={{ mixBlendMode: 'multiply' }}
-          />
+        {GreeneryComponent && (
+          <foreignObject x={gX} y={gY} width={gSize} height={gSize}>
+            <div xmlns="http://www.w3.org/1999/xhtml"
+              style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <GreeneryComponent size={gSize} />
+            </div>
+          </foreignObject>
         )}
 
         {/* ── Layer 3: Flowers — ALWAYS after greenery, always on top ── */}
