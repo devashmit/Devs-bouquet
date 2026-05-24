@@ -9,7 +9,7 @@ export const FLOWER_TYPES = {
     name: 'Classic Red Rose',
     image: '/assets/flowers/classic_red_rose.png',
     headImage: '/assets/flowers/classic_red_rose_head.png',
-    dominantColor: 'red',
+    dominantColor: 'warm',
     description: 'Deep crimson petals, timeless romance',
     poetic: 'A love letter written in velvet.',
   },

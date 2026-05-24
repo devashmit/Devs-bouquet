@@ -6,15 +6,15 @@ Replace the existing mixed SVG/rough.js rendering engine with a clean image-base
 
 ## Tasks
 
-- [ ] 1. Install testing dependencies and configure Vitest
+- [x] 1. Install testing dependencies and configure Vitest
   - Install `vitest`, `@testing-library/react`, `@testing-library/jest-dom`, and `fast-check` as dev dependencies
   - Add a `vitest.config.js` (or extend `vite.config.js`) with jsdom environment and `@testing-library/jest-dom` setup
   - Add a `test` script to `package.json` (`vitest --run`)
   - Create `src/__tests__/` directory structure: `engine/`, `components/`, `pages/`, `firebase/`
   - _Requirements: Testing infrastructure for all subsequent test tasks_
 
-- [ ] 2. Rebuild the FLOWER_TYPES catalog and engine pure functions
-  - [ ] 2.1 Trim `src/engine/flowers/index.jsx` to exactly the six real PNG assets
+- [x] 2. Rebuild the FLOWER_TYPES catalog and engine pure functions
+  - [x] 2.1 Trim `src/engine/flowers/index.jsx` to exactly the six real PNG assets
     - Remove the four reuse-alias entries (`soft_pink_tulip`, `purple_lavender`, `yellow_mimosa`, `babys_breath`)
     - Add `dominantColor` field (`'pink' | 'warm' | 'blue' | 'white'`) to each of the six entries
     - Export named `FLOWER_TYPES` and default export
@@ -25,7 +25,7 @@ Replace the existing mixed SVG/rough.js rendering engine with a clean image-base
     - **Validates: Requirements 2.2, 2.3**
     - File: `src/__tests__/components/FlowerPicker.test.jsx`
 
-  - [ ] 2.3 Extract `getFanAngles`, `getFlowerSize`, `getRibbonColor`, and `zOrderSort` into `src/engine/bouquetEngine.js`
+  - [x] 2.3 Extract `getFanAngles`, `getFlowerSize`, `getRibbonColor`, and `zOrderSort` into `src/engine/bouquetEngine.js`
     - Move the four pure functions out of `BouquetCanvas.jsx` into a dedicated module
     - `zOrderSort(flowers)` returns a new array sorted so outer flowers come first (lower z), center flowers last (higher z), preserving `originalIndex` on each item
     - Export all four functions as named exports
@@ -122,14 +122,14 @@ Replace the existing mixed SVG/rough.js rendering engine with a clean image-base
     - Style form inputs using `var(--input-field)` tokens from `index.css`
     - _Requirements: 1.1, 1.4, 4.7_
 
-- [ ] 8. Update the visual design system in `src/index.css`
-  - [ ] 8.1 Add missing CSS custom properties for rose-gold and boutique tokens
+- [x] 8. Update the visual design system in `src/index.css`
+  - [x] 8.1 Add missing CSS custom properties for rose-gold and boutique tokens
     - Add `--rose-gold: #c9956c`, `--rose-gold-light: #e8c9a8`, `--rose-gold-glow: 0 0 0 2px #c9956c, 0 4px 12px rgba(201,149,108,0.25)`
     - Add `--cream-base: #faf8f3` (the canvas/preview background)
     - Verify `--font-heading` is `'Playfair Display'` and `--font-body` is `'DM Sans'` (already present; confirm Google Fonts import in `index.html`)
     - _Requirements: 1.1, 1.2, 1.3, 1.4_
 
-  - [ ] 8.2 Verify Google Fonts import in `index.html`
+  - [x] 8.2 Verify Google Fonts import in `index.html`
     - Confirm `<link>` tags for Playfair Display and DM Sans are present in `index.html`; add them if missing
     - _Requirements: 1.2, 1.3_
 

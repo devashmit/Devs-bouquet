@@ -12,13 +12,13 @@ import FLOWER_TYPES from './flowers/index.jsx';
  *
  * count=0 → []
  * count=1 → [0]
- * count>=2 → symmetric spread, max arc 100°
+ * count>=2 → symmetric spread, max arc 100° (2→40°, 3→60°, 4→80°, 5+→100°)
  */
 export function getFanAngles(count) {
   if (count === 0) return [];
   if (count === 1) return [0];
-  // Wider spread — 2 flowers = 40°, 3 = 60°, 4 = 80°, max 110°
-  const totalArc = Math.min(40 + (count - 2) * 20, 110);
+  // Spread: 2 flowers = 40°, 3 = 60°, 4 = 80°, 5+ = 100° (max)
+  const totalArc = Math.min(40 + (count - 2) * 20, 100);
   return Array.from({ length: count }, (_, i) => {
     const t = i / (count - 1) - 0.5;
     return t * totalArc;
